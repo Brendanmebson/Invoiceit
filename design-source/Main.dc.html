@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gadget Store Invoice Desk</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Chivo',system-ui,sans-serif;background:#E7E8EA;color:#111}
+input,button,textarea{font-family:inherit;border-radius:0}
+input:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid #D13506;outline-offset:0}
+a{color:#111}
+</style>
+</helmet>
+<div style="min-height: 1180px; display: flex; flex-direction: column; background: #E7E8EA">
+
+<!-- Top strip -->
+<header style="display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; background: #111; color: #FFFFFF">
+<div style="display: flex; align-items: center; gap: 16px; padding: 14px 28px">
+<span style="font-family: 'Chivo', sans-serif; font-weight: 900; font-size: 20px; letter-spacing: 0.04em; text-transform: uppercase">Invoice Desk</span>
+</div>
+<nav style="display: flex; align-items: stretch; gap: 4px">
+<a href="Invoices.dc.html" style="display: flex; align-items: center; min-height: 52px; padding: 0 16px; color: #B4B8BE; font-size: 14px; font-weight: 700; text-decoration: none">Invoices</a>
+<a href="Main.dc.html" style="display: flex; align-items: center; min-height: 52px; padding: 0 16px; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: inset 0 -4px 0 #D13506">New invoice</a>
+</nav>
+<div style="display: flex; flex-wrap: wrap; align-items: stretch">
+<button style="min-height: 52px; padding: 0 24px; border: 0; border-left: 1px solid #3A3D42; background: #111; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer">Save draft</button>
+<button style="min-height: 52px; padding: 0 24px; border: 0; border-left: 1px solid #3A3D42; background: #111; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer">Print</button>
+<button style="min-height: 52px; padding: 0 28px; border: 0; background: #D13506; color: #FFFFFF; font-size: 14px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer">Download PDF</button>
+</div>
+</header>
+
+<main style="display: flex; flex-wrap: wrap; flex: 1; align-items: stretch">
+
+<!-- Form panel -->
+<section style="flex: 1 1 520px; min-width: 0; max-width: 700px; box-sizing: border-box; padding: 32px 28px 56px; display: flex; flex-direction: column; gap: 36px">
+
+<!-- 01 -->
+<div style="display: flex; flex-direction: column; gap: 16px; border-top: 4px solid #111; padding-top: 12px">
+<div style="display: flex; align-items: baseline; gap: 12px"><span style="font-family: 'Chivo Mono', monospace; font-size: 14px; font-weight: 700; color: #B02A03">01</span><h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.01em">Store and invoice</h2></div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Store name
+<input type="text" value="{{fromName}}" onChange="{{setFromName}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Shop address
+<input type="text" value="{{fromAddr}}" onChange="{{setFromAddr}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Shop phone numbers
+<input type="text" value="{{fromPhone}}" onChange="{{setFromPhone}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Invoice no.
+<input type="text" value="{{invNo}}" onChange="{{setInvNo}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Date and time
+<input type="text" value="{{issue}}" onChange="{{setIssue}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Sales by
+<input type="text" value="{{salesBy}}" onChange="{{setSalesBy}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%">
+</label>
+</div>
+</div>
+
+<!-- 02 -->
+<div style="display: flex; flex-direction: column; gap: 16px; border-top: 4px solid #111; padding-top: 12px">
+<div style="display: flex; align-items: baseline; gap: 12px"><span style="font-family: 'Chivo Mono', monospace; font-size: 14px; font-weight: 700; color: #B02A03">02</span><h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.01em">Customer</h2></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Name
+<input type="text" value="{{toName}}" onChange="{{setToName}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Mobile
+<input type="text" value="{{toPhone}}" onChange="{{setToPhone}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+</div>
+</div>
+
+<!-- 03 -->
+<div style="display: flex; flex-direction: column; gap: 16px; border-top: 4px solid #111; padding-top: 12px">
+<div style="display: flex; align-items: baseline; gap: 12px"><span style="font-family: 'Chivo Mono', monospace; font-size: 14px; font-weight: 700; color: #B02A03">03</span><h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.01em">Items sold</h2></div>
+<div style="display: flex; flex-direction: column; gap: 0; border: 2px solid #111; background: #FFFFFF">
+<sc-for list="{{items}}" as="item" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; align-items: end; padding: 14px; border-bottom: 2px solid #111">
+<label style="grid-column: span 2; display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">Product
+<input type="text" value="{{item.desc}}" onChange="{{item.setDesc}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 15px; color: #111; width: 100%">
+</label>
+<label style="grid-column: span 2; display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">IMEI / serial
+<input type="text" value="{{item.serial}}" onChange="{{item.setSerial}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 14px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">Qty
+<input type="text" inputmode="decimal" value="{{item.qty}}" onChange="{{item.setQty}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">Unit price
+<input type="text" inputmode="decimal" value="{{item.price}}" onChange="{{item.setPrice}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<div style="grid-column: span 2; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px">
+<span style="font-family: 'Chivo Mono', monospace; font-size: 15px; font-weight: 700">{{item.amountSym}}</span>
+<button onClick="{{item.remove}}" aria-label="Remove item" style="width: 44px; height: 44px; border: 2px solid #111; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+</button>
+</div>
+</div>
+</sc-for>
+<button onClick="{{addItem}}" style="min-height: 52px; border: 0; background: #FFFFFF; color: #111; font-size: 14px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; text-align: left; padding: 0 14px">+ Add item</button>
+</div>
+</div>
+
+<!-- 04 -->
+<div style="display: flex; flex-direction: column; gap: 16px; border-top: 4px solid #111; padding-top: 12px">
+<div style="display: flex; align-items: baseline; gap: 12px"><span style="font-family: 'Chivo Mono', monospace; font-size: 14px; font-weight: 700; color: #B02A03">04</span><h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.01em">Payments</h2></div>
+<div style="display: flex; flex-direction: column; gap: 0; border: 2px solid #111; background: #FFFFFF">
+<sc-for list="{{payments}}" as="p" hint-placeholder-count="1">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: end; padding: 14px; border-bottom: 2px solid #111">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">Method
+<input type="text" value="{{p.method}}" onChange="{{p.setMethod}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 15px; color: #111; width: 100%">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">Amount paid
+<input type="text" inputmode="decimal" value="{{p.amount}}" onChange="{{p.setAmount}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333; min-width: 0">Date
+<input type="text" value="{{p.date}}" onChange="{{p.setDate}}" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 14px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<div style="display: flex; justify-content: flex-end">
+<button onClick="{{p.remove}}" aria-label="Remove payment" style="width: 44px; height: 44px; border: 2px solid #111; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+</button>
+</div>
+</div>
+</sc-for>
+<button onClick="{{addPayment}}" style="min-height: 52px; border: 0; background: #FFFFFF; color: #111; font-size: 14px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; text-align: left; padding: 0 14px">+ Add payment (part payment, POS, cash)</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Currency</span>
+<div style="display: flex; flex-wrap: wrap; border: 2px solid #111; align-self: flex-start; background: #FFFFFF">
+<sc-for list="{{currencies}}" as="c" hint-placeholder-count="4"><button onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="{{c.style}}">{{c.label}}</button></sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Optional extras (shown on the invoice only when above 0)</span>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Discount
+<input type="text" inputmode="decimal" value="{{discount}}" onChange="{{setDiscount}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Delivery fee
+<input type="text" inputmode="decimal" value="{{delivery}}" onChange="{{setDelivery}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">VAT %
+<input type="text" inputmode="decimal" value="{{taxRate}}" onChange="{{setTaxRate}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Footer note (optional, e.g. warranty or return policy)
+<textarea rows="2" onChange="{{setNotes}}" style="box-sizing: border-box; padding: 12px; border: 2px solid #111; background: #FFFFFF; font-size: 15px; color: #111; resize: vertical; line-height: 1.5">{{notes}}</textarea>
+</label>
+</div>
+</section>
+
+<!-- Preview bench -->
+<section style="flex: 1 1 520px; min-width: 0; box-sizing: border-box; background: #1A1B1E; padding: 32px 28px 56px; display: flex; flex-direction: column; align-items: center; gap: 16px">
+<div style="width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #B4B8BE; font-family: 'Chivo Mono', monospace; font-size: 12px">
+<span>PREVIEW · UPDATES AS YOU TYPE</span>
+<span>A4</span>
+</div>
+
+<!-- The printed invoice -->
+<article style="width: 100%; max-width: 680px; min-height: 877px; box-sizing: border-box; background: #FFFFFF; color: #111; font-family: 'Open Sans', sans-serif; font-weight: 400; overflow: hidden">
+<div style="padding: 40px 32px 48px; display: flex; flex-direction: column; gap: 22px">
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+<span style="font-family: 'Arimo', Arial, sans-serif; font-size: 32px; line-height: 1.1; text-transform: uppercase; overflow-wrap: anywhere">{{fromName}}</span>
+<span style="font-size: 10.5px; text-transform: uppercase; overflow-wrap: anywhere">{{fromAddr}}</span>
+<span style="font-size: 12px"><strong style="font-weight: 700">Mobile:</strong> {{fromPhone}}</span>
+</div>
+
+<div style="text-align: center; font-family: 'Arimo', Arial, sans-serif; font-size: 24px; text-transform: uppercase">Invoice</div>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; font-size: 12px; line-height: 1.7">
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span><strong style="font-weight: 700">Invoice No.</strong> {{invNo}}</span>
+<strong style="font-weight: 700">Customer</strong>
+<span style="text-transform: uppercase; overflow-wrap: anywhere">{{toName}}</span>
+<span><strong style="font-weight: 700">Mobile</strong>: {{toPhone}}</span>
+</div>
+<span><strong style="font-weight: 700">Date</strong> {{issue}}</span>
+</div>
+
+<div style="font-size: 12px; text-transform: uppercase"><strong style="font-weight: 700">Sales by</strong> {{salesBy}}</div>
+
+<div style="display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 82px 88px 92px; gap: 8px; padding: 6px 0 8px; font-size: 12px; font-weight: 700">
+<span>Product</span><span style="text-align: right">Quantity</span><span style="text-align: right">Unit Price</span><span style="text-align: right">Subtotal</span>
+</div>
+<sc-for list="{{items}}" as="row" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 82px 88px 92px; gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A; font-size: 12px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<span style="text-transform: uppercase; overflow-wrap: anywhere">{{row.desc}}</span>
+<sc-if value="{{row.hasSerial}}" hint-placeholder-val="{{ true }}"><span style="font-size: 10px; overflow-wrap: anywhere">{{row.serial}}</span></sc-if>
+</div>
+<span style="text-align: right">{{row.qtyFmt}}</span>
+<span style="text-align: right">{{row.priceFmt}}</span>
+<span style="text-align: right">{{row.amount}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="margin-top: 14px; border-top: 2px dotted #111"></div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px 36px; font-size: 12px">
+<!-- Payments -->
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column">
+<sc-for list="{{payments}}" as="pay" hint-placeholder-count="1">
+<div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A">
+<span style="overflow-wrap: anywhere">{{pay.method}}</span>
+<span>{{pay.amountFmt}}</span>
+<span>{{pay.date}}</span>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.2fr); gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A">
+<strong style="font-weight: 700">Total Paid</strong>
+<span>{{paidFmt}}</span>
+</div>
+<sc-if value="{{hasBalance}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.2fr); gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A">
+<strong style="font-weight: 700">Balance</strong>
+<span>{{balanceFmt}}</span>
+</div>
+</sc-if>
+</div>
+<!-- Totals -->
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A"><strong style="font-weight: 700">Subtotal:</strong><span>{{subtotal}}</span></div>
+<sc-if value="{{showDiscount}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A"><strong style="font-weight: 700">Discount:</strong><span>-{{discountFmt}}</span></div>
+</sc-if>
+<sc-if value="{{showDelivery}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A"><strong style="font-weight: 700">Delivery:</strong><span>{{deliveryFmt}}</span></div>
+</sc-if>
+<sc-if value="{{showTax}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A"><strong style="font-weight: 700">VAT ({{taxRate}}%):</strong><span>{{tax}}</span></div>
+</sc-if>
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px dotted #9A9A9A"><strong style="font-weight: 700">Total:</strong><span>{{total}}</span></div>
+</div>
+</div>
+
+<sc-if value="{{hasNotes}}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 10.5px; line-height: 1.6; color: #333; white-space: pre-line">{{notes}}</div>
+</sc-if>
+</div>
+</article>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.nextId = 10;
+this.state = {
+invNo: '00001',
+issue: '04-11-2026 07:17 PM',
+currency: 'NGN',
+fromName: 'Your Store Name',
+fromAddr: 'Shop no., Plaza name, Street, Area, City',
+fromPhone: '0800 000 0000, 0800 000 0001',
+salesBy: 'Mr Name',
+toName: 'Customer Name',
+toPhone: '0800 000 0000',
+discount: '0',
+delivery: '0',
+taxRate: '0',
+notes: '',
+items: [
+{ id: 1, desc: 'Phone model 128GB new', serial: '000000000000000', qty: '1', price: '620000' },
+{ id: 2, desc: 'Phone model 256GB new', serial: '000000000000001', qty: '1', price: '660000' }
+],
+payments: [
+{ id: 1, method: 'Bank Transfer', amount: '1280000', date: '04-11-2026' }
+]
+};
+}
+renderVals() {
+const s = this.state;
+const syms = { NGN: '₦', USD: '$', GBP: '£', EUR: '€' };
+const sym = syms[s.currency] || '';
+const num = (v) => { const n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+const plain = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n) => sym + ' ' + plain(n);
+const field = (key) => (e) => this.setState({ [key]: e.target.value });
+const updItem = (id, key) => (e) => this.setState({ items: this.state.items.map((it) => it.id === id ? { ...it, [key]: e.target.value } : it) });
+const updPay = (id, key) => (e) => this.setState({ payments: this.state.payments.map((p) => p.id === id ? { ...p, [key]: e.target.value } : p) });
+const items = s.items.map((it) => {
+const line = num(it.qty) * num(it.price);
+return {
+...it,
+hasSerial: it.serial.trim() !== '',
+qtyFmt: plain(num(it.qty)) + ' Pc(s)',
+priceFmt: plain(num(it.price)),
+amount: plain(line),
+amountSym: fmt(line),
+setDesc: updItem(it.id, 'desc'),
+setSerial: updItem(it.id, 'serial'),
+setQty: updItem(it.id, 'qty'),
+setPrice: updItem(it.id, 'price'),
+remove: () => this.setState({ items: this.state.items.filter((x) => x.id !== it.id) })
+};
+});
+const payments = s.payments.map((p) => ({
+...p,
+amountFmt: fmt(num(p.amount)),
+setMethod: updPay(p.id, 'method'),
+setAmount: updPay(p.id, 'amount'),
+setDate: updPay(p.id, 'date'),
+remove: () => this.setState({ payments: this.state.payments.filter((x) => x.id !== p.id) })
+}));
+const sub = s.items.reduce((a, it) => a + num(it.qty) * num(it.price), 0);
+const disc = Math.min(num(s.discount), sub);
+const del = num(s.delivery);
+const tax = (sub - disc) * num(s.taxRate) / 100;
+const total = sub - disc + del + tax;
+const paid = s.payments.reduce((a, p) => a + num(p.amount), 0);
+const balance = total - paid;
+const seg = (on) => 'min-height:44px;padding:0 16px;border:0;border-right:2px solid #111;font-size:14px;font-weight:700;cursor:pointer;background:' + (on ? '#111' : '#FFFFFF') + ';color:' + (on ? '#FFFFFF' : '#111');
+const currencies = Object.keys(syms).map((code) => ({ label: syms[code] + ' ' + code, on: s.currency === code, pick: () => this.setState({ currency: code }), style: seg(s.currency === code) }));
+return {
+items, payments, currencies,
+invNo: s.invNo, issue: s.issue, fromName: s.fromName, fromAddr: s.fromAddr, fromPhone: s.fromPhone, salesBy: s.salesBy,
+toName: s.toName, toPhone: s.toPhone, discount: s.discount, delivery: s.delivery, taxRate: s.taxRate, notes: s.notes,
+subtotal: fmt(sub), discountFmt: fmt(disc), deliveryFmt: fmt(del), tax: fmt(tax), total: fmt(total),
+paidFmt: fmt(paid), balanceFmt: fmt(balance),
+hasBalance: balance > 0.005,
+showDiscount: disc > 0, showDelivery: del > 0, showTax: num(s.taxRate) > 0,
+hasNotes: s.notes.trim() !== '',
+setInvNo: field('invNo'), setIssue: field('issue'), setFromName: field('fromName'), setFromAddr: field('fromAddr'), setFromPhone: field('fromPhone'),
+setSalesBy: field('salesBy'), setToName: field('toName'), setToPhone: field('toPhone'),
+setDiscount: field('discount'), setDelivery: field('delivery'), setTaxRate: field('taxRate'), setNotes: field('notes'),
+addItem: () => { const id = this.nextId++; this.setState({ items: this.state.items.concat([{ id: id, desc: 'New item', serial: '', qty: '1', price: '0' }]) }); },
+addPayment: () => { const id = this.nextId++; this.setState({ payments: this.state.payments.concat([{ id: id, method: 'POS', amount: '0', date: this.state.issue.split(' ')[0] }]) }); }
+};
+}
+}
+</script>
+</body>
+</html>

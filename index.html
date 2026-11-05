@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoices · JB Enterprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="left">
+    <a class="brand" href="index.html">JB Enterprise</a>
+    <nav><a class="on" href="index.html">Invoices</a><a href="new.html">New invoice</a></nav>
+  </div>
+  <div class="right"><a class="top-btn primary" href="new.html">+ New invoice</a></div>
+</header>
+
+<main class="page">
+  <div class="head-row">
+    <h1>Invoices</h1>
+    <label class="f" style="width:320px;max-width:100%">Search
+      <input id="q" type="search" placeholder="Customer, number or item" style="text-transform:none;letter-spacing:0">
+    </label>
+  </div>
+
+  <div class="upload" id="upload" hidden></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="seg" id="filters" style="align-self:flex-start">
+    <button data-f="ALL" aria-pressed="true">All</button>
+    <button data-f="PAID" aria-pressed="false">PAID</button>
+    <button data-f="PART-PAID" aria-pressed="false">PART-PAID</button>
+    <button data-f="UNPAID" aria-pressed="false">UNPAID</button>
+  </div>
+
+  <div class="table">
+    <div style="min-width:0">
+      <div class="thead"><span>NO.</span><span>DATE</span><span>CUSTOMER</span><span>ITEMS</span><span style="text-align:right">TOTAL</span><span>STATUS</span><span></span></div>
+      <div id="rows"></div>
+      <div class="empty" id="empty">Loading invoices…</div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script>
+(function () {
+  var S = Store, filter = 'ALL', q = '', data = [];
+
+  function renderStats() {
+    var invoiced = data.reduce(function (a, d) { return a + d.c.total; }, 0);
+    var owed = data.reduce(function (a, d) { return a + d.c.balance; }, 0);
+    var paid = invoiced - owed;
+    document.getElementById('stats').innerHTML =
+      '<div class="stat"><span>INVOICED</span><span>' + S.money(invoiced, 'NGN') + '</span></div>' +
+      '<div class="stat"><span>COLLECTED</span><span>' + S.money(paid, 'NGN') + '</span></div>' +
+      '<div class="stat owed"><span>STILL OWED</span><span>' + S.money(owed, 'NGN') + '</span></div>' +
+      '<div class="stat"><span>INVOICES</span><span>' + data.length + '</span></div>';
+  }
+  function renderRows() {
+    var needle = q.trim().toLowerCase();
+    var list = data.filter(function (d) {
+      var hay = (d.inv.cust + ' ' + d.inv.no + ' ' + d.inv.items.map(function (i) { return i.desc; }).join(' ')).toLowerCase();
+      return (filter === 'ALL' || d.c.status === filter) && (needle === '' || hay.indexOf(needle) >= 0);
+    });
+    document.getElementById('rows').innerHTML = list.map(function (d) {
+      var items = d.inv.items.map(function (i) { return S.esc(i.desc) + ' × ' + S.esc(S.plain(S.qty(i)).replace('.00', '')); }).join(', ');
+      return '<a class="row" href="invoice.html?id=' + encodeURIComponent(d.inv.id) + '">' +
+        '<span class="meta"><span class="c-no">' + S.esc(d.inv.no) + '</span><span class="c-date">' + S.esc(d.inv.date.split(' ')[0]) + '</span></span>' +
+        '<span class="c-cust">' + S.esc(d.inv.cust) + '</span><span class="c-items">' + items + '</span>' +
+        '<span class="c-total">' + S.money(d.c.total, d.inv.currency) + '</span><span class="c-status">' + S.badge(d.c.status) + '</span>' +
+        '<svg class="c-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>';
+    }).join('');
+    document.getElementById('empty').hidden = list.length > 0;
+    document.getElementById('empty').textContent = data.length ? 'No invoices match that search or filter.' : 'No invoices yet. Create your first one.';
+  }
+  document.getElementById('q').addEventListener('input', function (e) { q = e.target.value; renderRows(); });
+  document.getElementById('filters').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    filter = b.dataset.f;
+    [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    renderRows();
+  });
+  function renderUpload() {
+    var n = S.localInvoices().length, box = document.getElementById('upload');
+    box.hidden = n === 0; if (!n) return;
+    box.innerHTML = '<span><b>' + n + ' invoice' + (n > 1 ? 's are' : ' is') + ' saved only on this device.</b> Upload ' + (n > 1 ? 'them' : 'it') +
+      ' so every device can see ' + (n > 1 ? 'them' : 'it') + '. ' + (n > 1 ? 'They' : 'It') + ' will get new invoice numbers.</span>' +
+      '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="doClear">Clear</button>' +
+      '<button class="btn dark" type="button" id="doUpload">Upload ' + n + '</button></span>';
+    document.getElementById('doClear').onclick = function () {
+      if (!confirm('Delete the ' + n + ' invoice' + (n > 1 ? 's' : '') + ' saved on this device? This cannot be undone.')) return;
+      S.clearLocal(); renderUpload();
+    };
+    document.getElementById('doUpload').onclick = function () {
+      this.disabled = true; this.textContent = 'Uploading…';
+      S.uploadLocal().then(load, function (err) { box.querySelector('span').textContent = 'Upload stopped: ' + err.message + ' Reload and try again.'; });
+    };
+  }
+  function load() {
+    return S.all().then(function (list) {
+      data = list.map(function (i) { return { inv: i, c: S.calc(i) }; });
+      renderStats(); renderRows(); renderUpload();
+    });
+  }
+  S.ready().then(load).catch(function (err) { document.getElementById('empty').textContent = 'Could not load invoices. ' + err.message; });
+})();
+</script>
+</body>
+</html>

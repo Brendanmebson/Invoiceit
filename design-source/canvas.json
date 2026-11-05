@@ -1,0 +1,25 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-27T18:30:00Z" },
+  "title": "Gadget Store Invoice Generator",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Invoices.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1000, "expand": "fill", "title": "Invoices · website", "is_interactive": true },
+    "MInvoices.dc.html": { "x": 1520, "y": 0, "w": 390, "h": 1020, "title": "Invoices · mobile", "is_interactive": true },
+    "LInvoices.dc.html": { "x": 1990, "y": 0, "w": 1440, "h": 900, "title": "Invoices · laptop view", "is_interactive": true },
+    "Main.dc.html": { "x": 0, "y": 1360, "w": 1440, "h": 1180, "expand": "fill", "title": "New invoice · website", "is_interactive": true },
+    "MNew.dc.html": { "x": 1520, "y": 1360, "w": 390, "h": 1100, "title": "New invoice · mobile", "is_interactive": true },
+    "LNew.dc.html": { "x": 1990, "y": 1360, "w": 1440, "h": 900, "title": "New invoice · laptop view", "is_interactive": true },
+    "InvoiceView.dc.html": { "x": 0, "y": 2880, "w": 1440, "h": 1160, "expand": "fill", "title": "Invoice view · website" },
+    "MView.dc.html": { "x": 1520, "y": 2880, "w": 390, "h": 980, "title": "Invoice view · mobile" },
+    "LView.dc.html": { "x": 1990, "y": 2880, "w": 1440, "h": 900, "title": "Invoice view · laptop view" }
+  },
+  "order": ["Invoices.dc.html", "MInvoices.dc.html", "LInvoices.dc.html", "Main.dc.html", "MNew.dc.html", "LNew.dc.html", "InvoiceView.dc.html", "MView.dc.html", "LView.dc.html"],
+  "notes": {
+    "t1": { "x": 0, "y": -260, "text": "1 · Invoices", "kind": "title1", "maxW": 3430 },
+    "t2": { "x": 0, "y": 1100, "text": "2 · New invoice", "kind": "title1", "maxW": 3430 },
+    "t3": { "x": 0, "y": 2620, "text": "3 · Invoice view", "kind": "title1", "maxW": 3430 }
+  },
+  "designSystems": []
+}

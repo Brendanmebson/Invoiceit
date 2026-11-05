@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New invoice mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Chivo',system-ui,sans-serif;background:#E7E8EA;color:#111}
+input,button{font-family:inherit;border-radius:0}
+input:focus,button:focus-visible,a:focus-visible{outline:3px solid #D13506;outline-offset:0}
+a{color:#111}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1100px; box-sizing: border-box; display: flex; flex-direction: column; background: #E7E8EA">
+
+<header style="display: flex; align-items: stretch; justify-content: space-between; background: #111; color: #FFFFFF">
+<a href="MInvoices.dc.html" aria-label="Back to invoices" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+</a>
+<div style="display: flex; align-items: center; padding: 0 16px"><span style="font-weight: 900; font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase">New invoice</span></div>
+<button style="min-width: 56px; height: 56px; padding: 0 14px; border: 0; background: #111; color: #FFFFFF; font-size: 13px; font-weight: 700; cursor: pointer">Save</button>
+</header>
+
+<main style="flex: 1; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 0">
+<p style="margin: 0 0 16px; font-size: 14px; color: #333">Fill in each step. Your invoice builds as you go.</p>
+
+<!-- 1 Store -->
+<section style="border: 2px solid #111; background: #FFFFFF">
+<button onClick="{{tog1}}" aria-expanded="{{open1}}" style="{{head1}}">
+<span style="display: flex; flex-direction: column; gap: 3px; text-align: left; min-width: 0"><span style="font-size: 16px; font-weight: 900">1 · Store and invoice</span><span style="{{sumStyle1}}">{{sum1}}</span></span>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 20px; font-weight: 700">{{sign1}}</span>
+</button>
+<sc-if value="{{open1}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 14px; border-top: 2px solid #111">
+<sc-for list="{{storeFields}}" as="f" hint-placeholder-count="6">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">{{f.label}}
+<input type="text" value="{{f.value}}" onChange="{{f.set}}" style="{{f.style}}">
+</label>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+<!-- 2 Customer -->
+<section style="border: 2px solid #111; border-top: 0; background: #FFFFFF">
+<button onClick="{{tog2}}" aria-expanded="{{open2}}" style="{{head2}}">
+<span style="display: flex; flex-direction: column; gap: 3px; text-align: left; min-width: 0"><span style="font-size: 16px; font-weight: 900">2 · Customer</span><span style="{{sumStyle2}}">{{sum2}}</span></span>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 20px; font-weight: 700">{{sign2}}</span>
+</button>
+<sc-if value="{{open2}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 14px; border-top: 2px solid #111">
+<sc-for list="{{custFields}}" as="f" hint-placeholder-count="2">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">{{f.label}}
+<input type="text" value="{{f.value}}" onChange="{{f.set}}" style="{{f.style}}">
+</label>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+<!-- 3 Items -->
+<section style="border: 2px solid #111; border-top: 0; background: #FFFFFF">
+<button onClick="{{tog3}}" aria-expanded="{{open3}}" style="{{head3}}">
+<span style="display: flex; flex-direction: column; gap: 3px; text-align: left; min-width: 0"><span style="font-size: 16px; font-weight: 900">3 · Items sold</span><span style="{{sumStyle3}}">{{sum3}}</span></span>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 20px; font-weight: 700">{{sign3}}</span>
+</button>
+<sc-if value="{{open3}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; border-top: 2px solid #111">
+<sc-for list="{{items}}" as="item" hint-placeholder-count="2">
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 12px; border-bottom: 2px solid #111">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Product
+<input type="text" value="{{item.desc}}" onChange="{{item.setDesc}}" style="height: 48px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 16px; color: #111; width: 100%">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">IMEI / serial
+<input type="text" value="{{item.serial}}" onChange="{{item.setSerial}}" style="height: 48px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 15px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<div style="display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Qty
+<input type="text" inputmode="decimal" value="{{item.qty}}" onChange="{{item.setQty}}" style="height: 48px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 16px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">Unit price
+<input type="text" inputmode="decimal" value="{{item.price}}" onChange="{{item.setPrice}}" style="height: 48px; box-sizing: border-box; padding: 0 10px; border: 2px solid #111; background: #F4F5F6; font-size: 16px; color: #111; width: 100%; font-family: 'Chivo Mono', monospace">
+</label>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<span style="font-family: 'Chivo Mono', monospace; font-size: 16px; font-weight: 700">{{item.amount}}</span>
+<button onClick="{{item.remove}}" aria-label="Remove item" style="width: 48px; height: 48px; border: 2px solid #111; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+</button>
+</div>
+</div>
+</sc-for>
+<button onClick="{{addItem}}" style="min-height: 56px; border: 0; background: #FFFFFF; color: #111; font-size: 14px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; text-align: left; padding: 0 14px">+ Add item</button>
+</div>
+</sc-if>
+</section>
+
+<!-- 4 Payments -->
+<section style="border: 2px solid #111; border-top: 0; background: #FFFFFF">
+<button onClick="{{tog4}}" aria-expanded="{{open4}}" style="{{head4}}">
+<span style="display: flex; flex-direction: column; gap: 3px; text-align: left; min-width: 0"><span style="font-size: 16px; font-weight: 900">4 · Payment</span><span style="{{sumStyle4}}">{{sum4}}</span></span>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 20px; font-weight: 700">{{sign4}}</span>
+</button>
+<sc-if value="{{open4}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 14px; border-top: 2px solid #111">
+<sc-for list="{{payFields}}" as="f" hint-placeholder-count="3">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #333">{{f.label}}
+<input type="text" value="{{f.value}}" onChange="{{f.set}}" style="{{f.style}}">
+</label>
+</sc-for>
+</div>
+</sc-if>
+</section>
+</main>
+
+<!-- Bottom bar -->
+<footer style="display: flex; align-items: stretch; justify-content: space-between; background: #111; color: #FFFFFF">
+<div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 16px; min-width: 0">
+<span style="font-family: 'Chivo Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #B4B8BE">TOTAL</span>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 20px; font-weight: 700">{{total}}</span>
+</div>
+<a href="MView.dc.html" style="display: flex; align-items: center; min-height: 72px; padding: 0 24px; background: #D13506; color: #FFFFFF; font-size: 14px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none">Preview</a>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.nextId = 10;
+this.state = {
+open: 3,
+v: {
+fromName: 'Your Store Name', fromAddr: 'Shop no., Plaza name, Street, Area, City', fromPhone: '0800 000 0000, 0800 000 0001',
+invNo: '00001', issue: '04-11-2026 07:17 PM', salesBy: 'Mr Name',
+toName: 'Customer Name', toPhone: '0800 000 0000',
+payMethod: 'Bank Transfer', payAmount: '1280000', payDate: '04-11-2026'
+},
+items: [
+{ id: 1, desc: 'Phone model 128GB new', serial: '000000000000000', qty: '1', price: '620000' },
+{ id: 2, desc: 'Phone model 256GB new', serial: '000000000000001', qty: '1', price: '660000' }
+]
+};
+}
+renderVals() {
+const s = this.state;
+const num = (x) => { const n = parseFloat(String(x).replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+const fmt = (n) => '₦ ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const inp = (mono) => 'height:48px;box-sizing:border-box;padding:0 10px;border:2px solid #111;background:#F4F5F6;font-size:16px;color:#111;width:100%;' + (mono ? "font-family:'Chivo Mono',monospace" : '');
+const setV = (key) => (e) => this.setState({ v: { ...this.state.v, [key]: e.target.value } });
+const field = (key, label, mono) => ({ label: label, value: s.v[key], set: setV(key), style: inp(mono) });
+const updItem = (id, key) => (e) => this.setState({ items: this.state.items.map((it) => it.id === id ? { ...it, [key]: e.target.value } : it) });
+const items = s.items.map((it) => ({
+...it,
+amount: fmt(num(it.qty) * num(it.price)),
+setDesc: updItem(it.id, 'desc'), setSerial: updItem(it.id, 'serial'), setQty: updItem(it.id, 'qty'), setPrice: updItem(it.id, 'price'),
+remove: () => this.setState({ items: this.state.items.filter((x) => x.id !== it.id) })
+}));
+const sub = s.items.reduce((a, it) => a + num(it.qty) * num(it.price), 0);
+const head = (on) => 'display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:68px;padding:10px 14px;border:0;cursor:pointer;background:' + (on ? '#111' : '#FFFFFF') + ';color:' + (on ? '#FFFFFF' : '#111');
+const sumStyle = (on) => 'font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:' + (on ? '#D5D8DD' : '#444');
+const sec = (n) => ({ on: s.open === n, tog: () => this.setState({ open: s.open === n ? 0 : n }) });
+const a = sec(1), b = sec(2), c = sec(3), d = sec(4);
+return {
+storeFields: [field('fromName', 'Store name'), field('fromAddr', 'Shop address'), field('fromPhone', 'Shop phone numbers', true), field('invNo', 'Invoice no.', true), field('issue', 'Date and time', true), field('salesBy', 'Sales by')],
+custFields: [field('toName', 'Name'), field('toPhone', 'Mobile', true)],
+payFields: [field('payMethod', 'Method'), field('payAmount', 'Amount paid', true), field('payDate', 'Date', true)],
+items,
+open1: a.on, open2: b.on, open3: c.on, open4: d.on,
+tog1: a.tog, tog2: b.tog, tog3: c.tog, tog4: d.tog,
+head1: head(a.on), head2: head(b.on), head3: head(c.on), head4: head(d.on),
+sumStyle1: sumStyle(a.on), sumStyle2: sumStyle(b.on), sumStyle3: sumStyle(c.on), sumStyle4: sumStyle(d.on),
+sign1: a.on ? '−' : '+', sign2: b.on ? '−' : '+', sign3: c.on ? '−' : '+', sign4: d.on ? '−' : '+',
+sum1: s.v.fromName + ' · ' + s.v.invNo,
+sum2: s.v.toName,
+sum3: s.items.length + (s.items.length === 1 ? ' item · ' : ' items · ') + fmt(sub),
+sum4: s.v.payMethod + ' · ' + fmt(num(s.v.payAmount)),
+total: fmt(sub),
+addItem: () => { const id = this.nextId++; this.setState({ items: this.state.items.concat([{ id: id, desc: 'New item', serial: '', qty: '1', price: '0' }]) }); }
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invoices laptop view</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#E7E8EA}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E7E8EA">
+<div style="width: 1328px; height: 848px; box-sizing: border-box; padding: 24px; border-radius: 22px 22px 0 0; background: #111; position: relative">
+<div style="position: absolute; top: 9px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 3px; background: #3A3D42"></div>
+<div style="width: 1280px; height: 800px; overflow: hidden; background: #E7E8EA; position: relative">
+<dc-import name="Invoices" hint-size="1280px,800px"></dc-import>
+</div>
+</div>
+<div style="width: 1440px; height: 20px; border-radius: 0 0 28px 28px; background: #C9CCD1; border-top: 2px solid #111; position: relative">
+<div style="position: absolute; top: 0; left: 50%; width: 180px; height: 8px; margin-left: -90px; border-radius: 0 0 10px 10px; background: #9A9EA5"></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

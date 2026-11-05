@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invoices mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Chivo',system-ui,sans-serif;background:#E7E8EA;color:#111}
+input,button{font-family:inherit;border-radius:0}
+input:focus,button:focus-visible,a:focus-visible{outline:3px solid #D13506;outline-offset:0}
+a{color:#111}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1020px; box-sizing: border-box; display: flex; flex-direction: column; background: #E7E8EA">
+
+<header style="display: flex; align-items: stretch; justify-content: space-between; background: #111; color: #FFFFFF">
+<div style="display: flex; align-items: center; padding: 0 16px"><span style="font-weight: 900; font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase">Invoice Desk</span></div>
+<a href="MNew.dc.html" aria-label="New invoice" style="width: 56px; height: 56px; background: #D13506; display: flex; align-items: center; justify-content: center">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
+</a>
+</header>
+
+<main style="padding: 24px 16px 32px; display: flex; flex-direction: column; gap: 18px">
+<h1 style="margin: 0; font-size: 36px; line-height: 1; font-weight: 900; letter-spacing: -0.03em">Invoices</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; border-top: 4px solid #111">
+<div style="padding: 12px 0 0; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'Chivo Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: #444">INVOICED</span><span style="font-family: 'Chivo Mono', monospace; font-size: 17px; font-weight: 700">{{invoiced}}</span></div>
+<div style="padding: 12px 0 0; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'Chivo Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: #444">STILL OWED</span><span style="font-family: 'Chivo Mono', monospace; font-size: 17px; font-weight: 700; color: #B02A03">{{owed}}</span></div>
+</div>
+
+<input type="text" aria-label="Search invoices" placeholder="Search customer or number" value="{{q}}" onChange="{{setQ}}" style="height: 48px; box-sizing: border-box; padding: 0 12px; border: 2px solid #111; background: #FFFFFF; font-size: 16px; color: #111; width: 100%">
+
+<div style="display: flex; flex-wrap: wrap; border: 2px solid #111; align-self: flex-start; background: #FFFFFF">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4"><button onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="{{f.style}}">{{f.label}}</button></sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; background: #FFFFFF; border: 2px solid #111">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<a href="MView.dc.html" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 76px; padding: 10px 14px; border-bottom: 1px solid #111; color: #111; text-decoration: none">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<span style="font-size: 16px; font-weight: 700; overflow-wrap: anywhere">{{r.cust}}</span>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 12px; color: #444">{{r.no}} · {{r.date}}</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0">
+<span style="font-family: 'Chivo Mono', monospace; font-size: 14px; font-weight: 700">{{r.totalFmt}}</span>
+<span style="{{r.badge}}">{{r.status}}</span>
+</div>
+</a>
+</sc-for>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 28px 14px; font-size: 15px; color: #333">No invoices match that search or filter.</div>
+</sc-if>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1020}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { filter: 'ALL', q: '' };
+this.data = [
+{ no: '00008', date: '04-11-2026', cust: 'Customer H', total: 660000, paid: 660000 },
+{ no: '00007', date: '03-11-2026', cust: 'Customer G', total: 84500, paid: 50000 },
+{ no: '00006', date: '03-11-2026', cust: 'Customer F', total: 65000, paid: 0 },
+{ no: '00005', date: '02-11-2026', cust: 'Customer E', total: 38000, paid: 38000 },
+{ no: '00004', date: '31-10-2026', cust: 'Customer D', total: 1280000, paid: 1280000 },
+{ no: '00003', date: '30-10-2026', cust: 'Customer C', total: 27500, paid: 27500 },
+{ no: '00002', date: '29-10-2026', cust: 'Customer B', total: 420000, paid: 200000 },
+{ no: '00001', date: '28-10-2026', cust: 'Customer A', total: 32000, paid: 32000 }
+];
+}
+renderVals() {
+const s = this.state;
+const fmt = (n) => '₦' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+const statusOf = (d) => d.paid >= d.total ? 'PAID' : (d.paid <= 0 ? 'UNPAID' : 'PART-PAID');
+const base = 'display:inline-block;padding:3px 8px;font-family:Chivo Mono,monospace;font-size:11px;font-weight:700;letter-spacing:0.04em;';
+const badges = {
+'PAID': base + 'border:2px solid #111;background:#FFFFFF;color:#111',
+'PART-PAID': base + 'border:2px dashed #111;background:#FFFFFF;color:#111',
+'UNPAID': base + 'border:2px solid #D13506;background:#D13506;color:#FFFFFF'
+};
+const q = s.q.trim().toLowerCase();
+const rows = this.data
+.map((d) => ({ ...d, status: statusOf(d) }))
+.filter((d) => (s.filter === 'ALL' || d.status === s.filter) && (q === '' || (d.cust + ' ' + d.no).toLowerCase().indexOf(q) >= 0))
+.map((d) => ({ ...d, totalFmt: fmt(d.total), badge: badges[d.status] }));
+const invoiced = this.data.reduce((a, d) => a + d.total, 0);
+const collected = this.data.reduce((a, d) => a + d.paid, 0);
+const seg = (on) => 'min-height:44px;padding:0 13px;border:0;border-right:2px solid #111;font-size:13px;font-weight:700;cursor:pointer;background:' + (on ? '#111' : '#FFFFFF') + ';color:' + (on ? '#FFFFFF' : '#111');
+const filters = ['ALL', 'PAID', 'PART-PAID', 'UNPAID'].map((f) => ({ label: f === 'ALL' ? 'All' : f, on: s.filter === f, pick: () => this.setState({ filter: f }), style: seg(s.filter === f) }));
+return {
+rows, filters, q: s.q, empty: rows.length === 0,
+invoiced: fmt(invoiced), owed: fmt(invoiced - collected),
+setQ: (e) => this.setState({ q: e.target.value })
+};
+}
+}
+</script>
+</body>
+</html>

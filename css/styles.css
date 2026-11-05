@@ -1,0 +1,207 @@
+:root{--ink:#111;--bg:#E7E8EA;--accent:#D13506;--accent-ink:#B02A03;--mute:#444;--field:#F4F5F6;--bench:#1A1B1E}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Chivo',system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--ink)}
+input,button,textarea,select{font-family:inherit;border-radius:0}
+input:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:0}
+.mono{font-family:'Chivo Mono',ui-monospace,monospace}
+
+/* top bar */
+.topbar{display:flex;flex-wrap:wrap;align-items:stretch;justify-content:space-between;background:var(--ink);color:#fff}
+.topbar .left{display:flex;flex-wrap:wrap;align-items:stretch;gap:16px}
+.brand{display:flex;align-items:center;padding:14px 28px;font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-decoration:none}
+.topbar nav{display:flex;align-items:stretch;gap:4px}
+.topbar nav a{display:flex;align-items:center;min-height:52px;padding:0 16px;color:#B4B8BE;font-size:14px;font-weight:700;text-decoration:none}
+.topbar nav a.on{color:#fff;box-shadow:inset 0 -4px 0 var(--accent)}
+.topbar .right{display:flex;flex-wrap:wrap;align-items:stretch}
+.topbar .right>*{min-height:52px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border:2px solid var(--ink);background:#fff;color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.ghost{background:transparent;border-style:dashed}
+.top-btn{display:flex;align-items:center;justify-content:center;padding:0 24px;border:0;border-left:1px solid #3A3D42;background:var(--ink);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+.top-btn.primary{background:var(--accent);border-left:0;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+
+/* form bits */
+label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#333;min-width:0}
+.in,label.f input,label.f textarea{height:44px;padding:0 12px;border:2px solid var(--ink);background:#fff;font-size:15px;color:var(--ink);width:100%}
+label.f textarea{height:auto;padding:12px;line-height:1.5;resize:vertical}
+.in.mono,label.f input.mono{font-family:'Chivo Mono',monospace}
+.grid{display:grid;gap:16px}
+.seg{display:inline-flex;flex-wrap:wrap;border:2px solid var(--ink);background:#fff}
+.seg button{min-height:44px;padding:0 16px;border:0;border-right:2px solid var(--ink);font-size:14px;font-weight:700;cursor:pointer;background:#fff;color:var(--ink)}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.seg button:last-child{border-right:0}
+.cap{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#333}
+
+/* badges */
+.badge{display:inline-block;justify-self:start;padding:5px 10px;font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.04em;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+.badge.part{border-style:dashed}
+.badge.unpaid{border-color:var(--accent);background:var(--accent);color:#fff}
+
+/* invoices list page */
+.page{padding:40px 48px 64px;display:flex;flex-direction:column;gap:32px}
+.page h1{margin:0;font-size:48px;line-height:1;font-weight:900;letter-spacing:-.03em}
+.head-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border-top:4px solid var(--ink)}
+.stat{padding:16px 0 4px;display:flex;flex-direction:column;gap:6px}
+.stat span:first-child{font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--mute)}
+.stat span:last-child{font-family:'Chivo Mono',monospace;font-size:26px;font-weight:700}
+.stat.owed span:last-child{color:var(--accent-ink)}
+.table{background:#fff;border:2px solid var(--ink);overflow-x:auto}
+.thead,.row{display:grid;grid-template-columns:90px 130px minmax(0,1.1fr) minmax(0,2fr) 160px 130px 28px;gap:16px;align-items:center;padding:0 20px}
+.thead{padding-top:12px;padding-bottom:12px;border-bottom:2px solid var(--ink);background:var(--field);font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;color:#333}
+.row{min-height:64px;border-bottom:1px solid var(--ink);color:var(--ink);text-decoration:none;font-size:15px}
+.row:hover{background:var(--field)}
+.row .meta{display:contents}
+.row .c-no{font-family:'Chivo Mono',monospace;font-weight:700}
+.row .c-date{font-family:'Chivo Mono',monospace;font-size:13px}
+.row .c-cust{font-weight:700;overflow-wrap:anywhere}
+.row .c-items{color:#333;font-size:14px;overflow-wrap:anywhere}
+.row .c-total{font-family:'Chivo Mono',monospace;font-weight:700;text-align:right}
+.empty{padding:40px 20px;color:#333}
+
+/* workspace (new invoice) */
+.workspace{display:flex;flex-wrap:wrap;align-items:stretch}
+.formcol{flex:1 1 520px;min-width:0;max-width:700px;padding:32px 28px 56px;display:flex;flex-direction:column;gap:36px}
+.sec{display:flex;flex-direction:column;gap:16px;border-top:4px solid var(--ink);padding-top:12px}
+.sec h2{margin:0;font-size:22px;font-weight:900;letter-spacing:-.01em;display:flex;align-items:baseline;gap:12px}
+.sec h2 i{font-style:normal;font-family:'Chivo Mono',monospace;font-size:14px;color:var(--accent-ink)}
+.box{display:flex;flex-direction:column;border:2px solid var(--ink);background:#fff}
+.box .line{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;align-items:end;padding:14px;border-bottom:2px solid var(--ink)}
+.box .line .span2{grid-column:span 2}
+.box .line label.f{font-size:11px}
+.box .line input{background:var(--field);font-size:15px}
+.box .amt{grid-column:span 2;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;font-family:'Chivo Mono',monospace;font-size:15px;font-weight:700}
+.x{width:44px;height:44px;border:2px solid var(--ink);background:#fff;cursor:pointer;font-size:18px;font-weight:900;line-height:1}
+.add{min-height:52px;border:0;background:#fff;color:var(--ink);font-size:14px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;text-align:left;padding:0 14px}
+.bench{flex:1 1 520px;min-width:0;background:var(--bench);padding:32px 28px 56px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.bench .cap2{width:100%;max-width:680px;display:flex;justify-content:space-between;color:#B4B8BE;font-family:'Chivo Mono',monospace;font-size:12px}
+
+/* printed invoice */
+.paper{width:100%;max-width:680px;min-height:877px;background:#fff;color:#111;font-family:'Open Sans',system-ui,sans-serif;font-weight:400;overflow:hidden}
+.paper .in-pad{padding:40px 32px 48px;display:flex;flex-direction:column;gap:22px}
+.p-head{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.p-name{font-family:'Arimo',Arial,sans-serif;font-size:32px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
+.p-addr{font-size:10.5px;text-transform:uppercase;overflow-wrap:anywhere}
+.p-mob{font-size:12px}
+.p-title{text-align:center;font-family:'Arimo',Arial,sans-serif;font-size:24px;text-transform:uppercase}
+.p-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;font-size:12px;line-height:1.7}
+.p-meta .col{display:flex;flex-direction:column;min-width:0}
+.paper b{font-weight:700}
+.p-grid{display:grid;grid-template-columns:minmax(0,1fr) 82px 88px 92px;gap:8px;font-size:12px}
+.p-th{padding:6px 0 8px;font-weight:700}
+.p-th span:nth-child(n+2),.p-tr span:nth-child(n+2){text-align:right}
+.p-tr{padding:7px 0;border-bottom:1px dotted #9A9A9A}
+.p-tr .pn{text-transform:uppercase;overflow-wrap:anywhere}
+.p-tr .sn{font-size:10px;margin-top:3px;overflow-wrap:anywhere}
+.p-rule{margin-top:14px;border-top:2px dotted #111}
+.p-bottom{display:flex;flex-wrap:wrap;gap:24px 36px;font-size:12px}
+.p-bottom>div{flex:1 1 240px;min-width:0;display:flex;flex-direction:column}
+.p-pay{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.2fr) minmax(0,1fr);gap:8px;padding:7px 0;border-bottom:1px dotted #9A9A9A}
+.p-pay.two{grid-template-columns:minmax(0,1.1fr) minmax(0,2.2fr)}
+.p-sum{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dotted #9A9A9A}
+.p-notes{font-size:10.5px;line-height:1.6;color:#333;white-space:pre-line}
+
+/* invoice view */
+.view{display:flex;flex-wrap:wrap;align-items:flex-start;gap:40px;padding:32px 48px 64px}
+.view .paperwrap{flex:1 1 560px;min-width:0;display:flex;flex-direction:column;gap:20px;align-items:center}
+.view .paperwrap .top{width:100%;max-width:720px;display:flex;flex-direction:column;gap:14px}
+.view .paper{max-width:720px;box-shadow:0 0 0 2px var(--ink)}
+.view aside{flex:0 1 360px;min-width:280px;display:flex;flex-direction:column;gap:28px;padding-top:8px}
+.acts{display:flex;flex-direction:column;gap:10px}
+.acts .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{display:flex;flex-direction:column;border-top:4px solid var(--ink);padding-top:12px}
+.kv h3{margin:0 0 10px;font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--mute)}
+.kv .r{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--ink);font-size:15px}
+.kv .r b{font-family:'Chivo Mono',monospace}
+.kv .r small{font-family:'Chivo Mono',monospace;font-size:12px;color:var(--mute);display:block}
+.payform{display:none;flex-direction:column;gap:12px;margin-top:8px}
+.payform.open{display:flex}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;font-weight:700;font-size:14px;display:none;z-index:9}
+
+/* mobile */
+@media (max-width:760px){
+  .brand{padding:14px 16px;font-size:18px}
+  .topbar nav a{padding:0 12px}
+  .page{padding:24px 16px 40px;gap:20px}
+  .page h1{font-size:36px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat span:last-child{font-size:17px}
+  .thead{display:none}
+  .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"cust total" "meta status";gap:6px 12px;padding:12px 14px;min-height:76px}
+  .row .c-cust{grid-area:cust;font-size:16px}
+  .row .c-total{grid-area:total;font-size:14px}
+  .row .meta{display:flex;grid-area:meta;gap:8px;font-family:'Chivo Mono',monospace;font-size:12px;color:var(--mute)}
+  .row .c-status{grid-area:status;justify-self:end}
+  .row .c-items,.row .c-arrow{display:none}
+  .formcol{padding:20px 16px 40px;max-width:none}
+  .bench{padding:20px 12px 40px}
+  .view{padding:16px 16px 40px;gap:24px}
+  .paper .in-pad{padding:24px 16px 28px}
+  .p-name{font-size:24px}
+  .p-grid{grid-template-columns:minmax(0,1fr) 62px 70px 78px;font-size:11px}
+  .topbar .right{width:100%}
+  .topbar .right>*{flex:1}
+}
+
+/* print: only the invoice */
+@media print{
+  body{background:#fff}
+  .topbar,.noprint,.formcol,.view aside,.view .top,.bench .cap2{display:none!important}
+  .workspace,.bench,.view,.paperwrap{display:block!important;padding:0!important;background:#fff!important}
+  .paper{box-shadow:none!important;max-width:none;min-height:0}
+}
+
+/* Items total vs payments check */
+.kv .msg{margin:10px 0 0;font-size:14px;font-weight:700}
+.settle{padding:12px 14px 14px;border:2px solid var(--ink);border-top-width:4px;background:#fff}
+.settle .btn{margin-top:10px;align-self:flex-start}
+.settle.owed .msg,.settle .r.owed b{color:#b42318}
+.settle.over .msg,.settle .r.over b{color:#9a5b00}
+.settle.ok .msg{color:#067647}
+
+/* Sign-in screen */
+.gate{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--bg);overflow:auto}
+.gate-card{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px;padding:28px;background:#fff;border:2px solid var(--ink);border-top:8px solid var(--accent)}
+.gate-brand{font-weight:900;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.gate-card h1{margin:0;font-size:32px;line-height:1;font-weight:900;letter-spacing:-.02em}
+.gate-card p{margin:0;font-size:15px;line-height:1.5}
+.gate-note{font-weight:700;color:var(--accent-ink)}
+.btn:disabled,.top-btn:disabled{opacity:.6;cursor:wait}
+/* Upload invoices saved on this device */
+.upload{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:2px solid var(--ink);background:#fff;font-size:15px}
+.upload[hidden]{display:none}
+
+/* Placeholders are hints, not text */
+input::placeholder,textarea::placeholder{color:#8A8F96;opacity:1;font-weight:400;text-transform:none;letter-spacing:0}
+
+/* Dropdowns match the text boxes */
+label.f select{height:44px;padding:0 36px 0 12px;border:2px solid var(--ink);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;font-size:15px;color:var(--ink);width:100%;-webkit-appearance:none;appearance:none;text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer}
+label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
+.box .line select{background-color:var(--field)}
+
+/* Bottom save row on the invoice form */
+.save-row{display:grid;grid-template-columns:1fr 2fr;gap:12px}
+.save-row .btn{min-height:56px}
+.back{align-self:flex-start;display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:700;text-decoration:none;color:var(--ink)}
+.toast{max-width:calc(100% - 32px);text-align:center}
+
+@media (max-width:760px){
+  /* 16px stops iPhones zooming the page when a box is tapped */
+  input,select,textarea,label.f input,label.f select,label.f textarea,.box .line input{font-size:16px}
+  .topbar nav{flex:1}
+  .topbar nav a{flex:1;justify-content:center}
+  .box .line{padding:12px;gap:10px}
+  .gate-card{padding:22px 18px}
+}
+@media (max-width:760px){
+  .stats{gap:0 16px}
+  .stat span:last-child{font-size:clamp(14px,4.6vw,20px);overflow-wrap:anywhere}
+  /* Filter and currency buttons: equal columns that always fit */
+  .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-self:stretch!important;width:100%}
+  .seg button{padding:0 6px;font-size:13px;white-space:nowrap}
+  .top-btn{padding:0 12px;white-space:nowrap;font-size:13px}
+}

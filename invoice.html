@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice · JB Enterprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="left">
+    <a class="brand" href="index.html">JB Enterprise</a>
+    <nav><a class="on" href="index.html">Invoices</a><a href="new.html">New invoice</a></nav>
+  </div>
+  <div class="right"><a class="top-btn primary" href="new.html">+ New invoice</a></div>
+</header>
+
+<main class="view" id="view"></main>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script>
+(function () {
+  var S = Store, id = new URLSearchParams(location.search).get('id'), inv;
+  var root = document.getElementById('view');
+  function notFound(msg) {
+    root.innerHTML = '<div class="paperwrap"><div class="top"><a class="btn" href="index.html" style="align-self:flex-start">← All invoices</a><h1 style="margin:0;font-size:32px">' + S.esc(msg) + '</h1></div></div>';
+  }
+  S.ready().then(function () { return id ? S.get(id) : null; }).then(function (found) {
+    if (!found) { notFound('Invoice not found'); return; }
+    inv = found; start();
+  }).catch(function (err) { notFound('Could not load invoice. ' + err.message); });
+
+  function start() {
+  document.title = 'Invoice ' + inv.no + ' · JB Enterprise';
+
+  function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(function () { t.style.display = 'none'; }, 2200); }
+
+  function render() {
+    var c = S.calc(inv), cur = inv.currency, m = function (n) { return S.money(n, cur); };
+    var pays = inv.payments.map(function (p) {
+      return '<div class="r"><span>' + S.esc(p.method) + '<small>' + S.esc(p.date) + '</small></span><b>' + m(S.num(p.amount)) + '</b></div>';
+    }).join('') || '<div class="r"><span>No payments yet</span></div>';
+    root.innerHTML =
+      '<section class="paperwrap"><div class="top">' +
+        '<a href="index.html" class="back">← All invoices</a>' +
+        '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px"><h1 style="margin:0;font-size:40px;line-height:1;font-weight:900;letter-spacing:-.03em">Invoice ' + S.esc(inv.no) + '</h1>' + S.badge(c.status) + '</div>' +
+      '</div>' + S.paper(inv) + '</section>' +
+      '<aside class="noprint">' +
+        '<div class="acts">' +
+          '<button class="btn primary" id="pdf" style="min-height:56px">Download PDF</button>' +
+          '<button class="btn" id="wa">Share on WhatsApp</button>' +
+          '<div class="two"><button class="btn" id="prt">Print</button><button class="btn" id="copy">Copy link</button></div>' +
+          '<a class="btn" href="new.html?dup=' + encodeURIComponent(inv.id) + '">Duplicate invoice</a>' +
+        '</div>' +
+        '<div class="kv"><h3>SUMMARY</h3>' +
+          '<div class="r"><span>Total</span><b>' + m(c.total) + '</b></div>' +
+          '<div class="r"><span>Paid</span><b>' + m(c.paid) + '</b></div>' +
+          (c.change > 0 ? '<div class="r" style="border-bottom:1px solid #111"><span>Overpaid by</span><b>' + m(c.change) + '</b></div>'
+            : '<div class="r" style="border-bottom:1px solid #111"><span>Left to pay</span><b>' + m(c.balance) + '</b></div>') +
+          '<p class="msg">' + S.esc(S.settle(c, cur).text) + '</p>' +
+        '</div>' +
+        '<div class="kv"><h3>PAYMENTS</h3>' + pays +
+          (c.balance <= 0 ? '<p class="msg">Fully paid. No more payments can be recorded.</p>' :
+          '<button class="btn ghost" id="payToggle" style="margin-top:8px">+ Record a payment</button>' +
+          '<form class="payform" id="payForm">' +
+            '<label class="f">Method' + S.methodSelect('id="pm" required') + '</label>' +
+            '<label class="f">Amount<input id="pa" class="mono" inputmode="decimal" value="' + S.esc(String(c.balance)) + '"></label>' +
+            '<label class="f">Date<input id="pd" class="mono" value="' + S.esc(S.today()) + '"></label>' +
+            '<p class="msg" style="margin:0;font-weight:400">Up to ' + m(c.balance) + ' (what is left to pay).</p>' +
+            '<button class="btn dark" type="submit">Save payment</button>' +
+          '</form>') +
+        '</div>' +
+      '</aside>';
+
+    document.getElementById('pdf').onclick = document.getElementById('prt').onclick = function () { window.print(); };
+    document.getElementById('copy').onclick = function () {
+      var url = location.href;
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { toast('Link copied. Staff can open it on any device after signing in.'); }, function () { toast('Copy the address from the browser bar.'); });
+    };
+    document.getElementById('wa').onclick = function () {
+      var text = S.STORE_NAME + ' · Invoice ' + inv.no + '\nCustomer: ' + inv.cust + '\nTotal: ' + m(c.total) + '\nPaid: ' + m(c.paid) + (c.balance > 0 ? '\nLeft to pay: ' + m(c.balance) : '') + (c.change > 0 ? '\nChange: ' + m(c.change) : '') + '\nStatus: ' + c.status;
+      window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    };
+    if (c.balance <= 0) return;
+    document.getElementById('payToggle').onclick = function () { document.getElementById('payForm').classList.toggle('open'); };
+    document.getElementById('payForm').onsubmit = function (e) {
+      e.preventDefault();
+      var amt = Math.round(S.num(document.getElementById('pa').value) * 100) / 100;
+      if (!document.getElementById('pm').value) { toast('Choose how the customer paid.'); return; }
+      if (amt <= 0) { toast('Enter an amount above 0.'); return; }
+      if (amt > c.balance) { toast('Too much. Only ' + m(c.balance) + ' is left to pay.'); document.getElementById('pa').value = String(c.balance); return; }
+      document.getElementById('pa').value = String(amt);
+      var pay = { method: document.getElementById('pm').value, amount: String(amt), date: document.getElementById('pd').value };
+      var btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Saving…';
+      // Re-read first so a payment recorded on another device is not lost, and re-check the balance.
+      S.get(inv.id).then(function (latest) {
+        var left = S.calc(latest).balance;
+        if (amt > left) { inv = latest; render(); toast(left > 0 ? 'Only ' + m(left) + ' is left to pay now.' : 'This invoice is already fully paid.'); return; }
+        latest.payments.push(pay);
+        return S.update(latest).then(function (saved) { inv = saved; render(); toast('Payment recorded.'); });
+      }).catch(function (err) { btn.disabled = false; btn.textContent = 'Save payment'; toast('Not saved. ' + err.message); });
+    };
+  }
+  render();
+  }
+})();
+</script>
+</body>
+</html>

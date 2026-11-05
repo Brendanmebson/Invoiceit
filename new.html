@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New invoice · JB Enterprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="left">
+    <a class="brand" href="index.html">JB Enterprise</a>
+    <nav><a href="index.html">Invoices</a><a class="on" href="new.html">New invoice</a></nav>
+  </div>
+  <div class="right">
+    <button class="top-btn" id="print">Print</button>
+    <button class="top-btn primary" id="save">Save invoice</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <section class="formcol">
+
+    <div class="sec">
+      <h2><i>01</i>Store and invoice</h2>
+      <label class="f">Shop address<input data-k="store.addr" placeholder="Shop no., plaza, street, area, city"></label>
+      <label class="f">Shop phone numbers<input class="mono" data-k="store.phone" placeholder="0800 000 0000"></label>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+        <label class="f">Invoice no. (set on save)<input class="mono" data-k="no" readonly tabindex="-1" style="background:var(--field)"></label>
+        <label class="f">Date and time<input class="mono" data-k="date"></label>
+        <label class="f">Sales by<input data-k="salesBy" placeholder="Staff name"></label>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2><i>02</i>Customer</h2>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <label class="f">Name<input data-k="cust" placeholder="Customer name"></label>
+        <label class="f">Mobile<input class="mono" data-k="phone" placeholder="0800 000 0000"></label>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2><i>03</i>Items sold</h2>
+      <div class="box">
+        <div id="items"></div>
+        <button class="add" id="addItem" type="button">+ Add item</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2><i>04</i>Payments</h2>
+      <div class="box">
+        <div id="pays"></div>
+        <button class="add" id="addPay" type="button">+ Add payment (part payment, POS, cash)</button>
+      </div>
+      <div class="kv settle" id="settle" aria-live="polite"></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span class="cap">Currency</span>
+        <div class="seg" id="cur" style="align-self:flex-start">
+          <button data-c="NGN" aria-pressed="true">₦ NGN</button><button data-c="USD" aria-pressed="false">$ USD</button>
+          <button data-c="GBP" aria-pressed="false">£ GBP</button><button data-c="EUR" aria-pressed="false">€ EUR</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span class="cap">Optional extras (shown on the invoice only when above 0)</span>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+          <label class="f">Discount<input class="mono" inputmode="decimal" data-k="discount" placeholder="0"></label>
+          <label class="f">Delivery fee<input class="mono" inputmode="decimal" data-k="delivery" placeholder="0"></label>
+          <label class="f">VAT %<input class="mono" inputmode="decimal" data-k="tax" placeholder="0"></label>
+        </div>
+      </div>
+      <label class="f">Footer note (optional, e.g. warranty or return policy)<textarea rows="2" data-k="notes" placeholder="e.g. 6 months warranty. No refund after 7 days."></textarea></label>
+    </div>
+
+    <div class="save-row">
+      <button class="btn" type="button" id="print2">Print</button>
+      <button class="btn primary" type="button" id="save2">Save invoice</button>
+    </div>
+  </section>
+
+  <section class="bench">
+    <div class="cap2"><span>PREVIEW · UPDATES AS YOU TYPE</span><span>A4</span></div>
+    <div id="preview" style="width:100%;display:flex;justify-content:center"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script>
+(function () {
+  var S = Store, params = new URLSearchParams(location.search), inv;
+  S.ready().then(function () {
+    return Promise.all([params.get('dup') ? S.get(params.get('dup')) : null, S.settings(), S.nextNo()]);
+  }).then(function (r) { start(r[0], r[1], r[2]); })
+    .catch(function (err) { toast('Could not load. ' + err.message); });
+
+  function start(dup, st, no) {
+  if (dup) {
+    inv = JSON.parse(JSON.stringify(dup));
+    delete inv.id; inv.store.name = S.STORE_NAME; inv.no = no; inv.date = S.nowStr(); inv.payments = [];
+  } else {
+    inv = {
+      no: no, date: S.nowStr(), cust: '', phone: '', salesBy: st.salesBy,
+      store: { name: S.STORE_NAME, addr: st.addr, phone: st.phone }, currency: 'NGN',
+      items: [{ desc: '', serial: '', qty: '', price: '' }],
+      payments: [{ method: '', amount: '', date: S.today(), auto: true }],
+      discount: '', delivery: '', tax: '', notes: ''
+    };
+  }
+
+  function getPath(k) { var p = k.split('.'); return p.length === 2 ? inv[p[0]][p[1]] : inv[k]; }
+  function setPath(k, v) { var p = k.split('.'); if (p.length === 2) inv[p[0]][p[1]] = v; else inv[k] = v; }
+
+  // While the first payment hasn't been typed into, it follows the items total (customer paying in full).
+  function followTotal() {
+    var p = inv.payments[0];
+    if (p && p.auto) { var t = S.calc(Object.assign({}, inv, { payments: [] })).total; p.amount = t > 0 ? String(t) : ''; var el = document.querySelector('[data-list="payments"][data-i="0"][data-f="amount"]'); if (el) el.value = p.amount; }
+  }
+  function renderSettle() {
+    var c = S.calc(inv), m = function (n) { return S.money(n, inv.currency); }, st = S.settle(c, inv.currency);
+    var last = c.balance > 0 ? '<div class="r owed"><span>Left to pay</span><b>' + m(c.balance) + '</b></div>'
+      : c.change > 0 ? '<div class="r over"><span>Overpaid by</span><b>' + m(c.change) + '</b></div>'
+      : '<div class="r"><span>Left to pay</span><b>' + m(0) + '</b></div>';
+    document.getElementById('settle').className = 'kv settle ' + st.kind;
+    document.getElementById('settle').innerHTML = '<h3>DOES IT ADD UP?</h3>' +
+      '<div class="r"><span>Items total</span><b>' + m(c.total) + '</b></div>' +
+      '<div class="r"><span>Paid</span><b>' + m(c.paid) + '</b></div>' + last +
+      '<p class="msg">' + S.esc(st.text) + '</p>' +
+      (c.balance > 0 && c.paid > 0 ? '<button class="btn ghost" type="button" id="payRest">+ Add payment for the remaining ' + m(c.balance) + '</button>' : '');
+  }
+  function preview() { followTotal(); renderSettle(); document.getElementById('preview').innerHTML = S.paper(inv); }
+
+  function renderItems() {
+    document.getElementById('items').innerHTML = inv.items.map(function (it, i) {
+      return '<div class="line">' +
+        '<label class="f span2">Product<input data-list="items" data-i="' + i + '" data-f="desc" placeholder="e.g. Phone 128GB new" value="' + S.esc(it.desc) + '"></label>' +
+        '<label class="f span2">IMEI / serial<input class="mono" data-list="items" data-i="' + i + '" data-f="serial" placeholder="Optional" value="' + S.esc(it.serial) + '"></label>' +
+        '<label class="f">Qty<input class="mono" inputmode="decimal" data-list="items" data-i="' + i + '" data-f="qty" placeholder="1" value="' + S.esc(it.qty) + '"></label>' +
+        '<label class="f">Unit price<input class="mono" inputmode="decimal" data-list="items" data-i="' + i + '" data-f="price" placeholder="0" value="' + S.esc(it.price) + '"></label>' +
+        '<div class="amt"><span data-amt="' + i + '">' + S.money(S.qty(it) * S.num(it.price), inv.currency) + '</span>' +
+        '<button class="x" type="button" aria-label="Remove item" data-rm="items" data-i="' + i + '">×</button></div></div>';
+    }).join('');
+  }
+  function renderPays() {
+    document.getElementById('pays').innerHTML = inv.payments.map(function (p, i) {
+      return '<div class="line">' +
+        '<label class="f">Method' + S.methodSelect('required data-list="payments" data-i="' + i + '" data-f="method"', p.method) + '</label>' +
+        '<label class="f">Amount paid<input class="mono" inputmode="decimal" data-list="payments" data-i="' + i + '" data-f="amount" placeholder="0" value="' + S.esc(p.amount) + '"></label>' +
+        '<label class="f">Date<input class="mono" data-list="payments" data-i="' + i + '" data-f="date" value="' + S.esc(p.date) + '"></label>' +
+        '<div style="display:flex;justify-content:flex-end"><button class="x" type="button" aria-label="Remove payment" data-rm="payments" data-i="' + i + '">×</button></div></div>';
+    }).join('') || '<div class="line" style="color:#444;font-size:14px">No payment yet. This invoice will show as UNPAID.</div>';
+  }
+  function syncCurrency() {
+    [].forEach.call(document.querySelectorAll('#cur button'), function (b) { b.setAttribute('aria-pressed', b.dataset.c === inv.currency ? 'true' : 'false'); });
+    [].forEach.call(document.querySelectorAll('[data-amt]'), function (el) {
+      var it = inv.items[+el.dataset.amt]; el.textContent = S.money(S.qty(it) * S.num(it.price), inv.currency);
+    });
+  }
+
+  // fill simple fields
+  [].forEach.call(document.querySelectorAll('[data-k]'), function (el) { el.value = getPath(el.dataset.k); });
+  renderItems(); renderPays(); syncCurrency(); preview();
+
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset.k) { setPath(t.dataset.k, t.value); }
+    else if (t.dataset.list) { inv[t.dataset.list][+t.dataset.i][t.dataset.f] = t.value; if (t.dataset.list === 'payments' && t.dataset.f === 'amount') delete inv.payments[+t.dataset.i].auto; if (t.dataset.list === 'items') syncCurrency(); }
+    else return;
+    preview();
+  });
+  // The amount that follows the total is selected on click, so typing a part payment replaces it.
+  document.addEventListener('focusin', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.list === 'payments' && t.dataset.f === 'amount' && inv.payments[+t.dataset.i] && inv.payments[+t.dataset.i].auto) t.select();
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.rm) { inv[t.dataset.rm].splice(+t.dataset.i, 1); t.dataset.rm === 'items' ? renderItems() : renderPays(); syncCurrency(); preview(); }
+    else if (t.id === 'payRest') { inv.payments.push({ method: 'Cash', amount: String(S.calc(inv).balance), date: S.today() }); renderPays(); preview(); }
+    else if (t.dataset.c) { inv.currency = t.dataset.c; syncCurrency(); preview(); }
+  });
+  document.getElementById('addItem').onclick = function () { inv.items.push({ desc: '', serial: '', qty: '', price: '' }); renderItems(); syncCurrency(); preview(); };
+  document.getElementById('addPay').onclick = function () { inv.payments.push({ method: '', amount: '', date: S.today() }); renderPays(); preview(); };
+  document.getElementById('print').onclick = document.getElementById('print2').onclick = function () { window.print(); };
+  document.getElementById('save2').onclick = function () { document.getElementById('save').click(); };
+  document.getElementById('save').onclick = function () {
+    inv.items = inv.items.filter(function (i) { return String(i.desc).trim() || S.num(i.price) > 0; });
+    inv.payments = inv.payments.filter(function (p) { return S.num(p.amount) !== 0 || String(p.method).trim(); });
+    renderItems(); renderPays(); syncCurrency(); preview();
+    if (!String(inv.cust).trim()) { toast('Enter the customer name.'); document.querySelector('[data-k="cust"]').focus(); return; }
+    if (!inv.items.length) { inv.items.push({ desc: '', serial: '', qty: '', price: '' }); renderItems(); preview(); toast('Add at least one item.'); return; }
+    var bad = inv.items.filter(function (i) { return !String(i.desc).trim() || S.num(i.price) <= 0; })[0];
+    if (bad) { toast('Every item needs a product name and a unit price.'); return; }
+    if (inv.payments.some(function (p) { return !String(p.method).trim(); })) { toast('Choose how the customer paid for each payment.'); return; }
+    var c = S.calc(inv);
+    if (c.change > 0) { toast('Payments are more than the total by ' + S.money(c.change, inv.currency) + '. Reduce a payment first.'); document.getElementById('settle').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (inv.payments.some(function (p) { return S.num(p.amount) < 0; })) { toast('A payment amount cannot be negative.'); return; }
+    inv.payments.forEach(function (p) { delete p.auto; });
+    var btn = document.getElementById('save'), btn2 = document.getElementById('save2'); if (btn.disabled) return;
+    btn.disabled = btn2.disabled = true; btn.textContent = btn2.textContent = 'Saving…';
+    S.add(inv).then(function (saved) {
+      return S.saveSettings({ addr: inv.store.addr, phone: inv.store.phone, salesBy: inv.salesBy }).catch(function () {}).then(function () {
+        location.href = 'invoice.html?id=' + encodeURIComponent(saved.id);
+      });
+    }).catch(function (err) { btn.disabled = btn2.disabled = false; btn.textContent = btn2.textContent = 'Save invoice'; toast('Not saved. ' + err.message); });
+  };
+  }
+  function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(function () { t.style.display = 'none'; }, 2200); }
+})();
+</script>
+</body>
+</html>
