@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Invoice · JB Enterprise</title>
+<title>Invoice · Invoiceit</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
@@ -11,13 +14,14 @@
 <body>
 <header class="topbar">
   <div class="left">
-    <a class="brand" href="index.html">JB Enterprise</a>
-    <nav><a class="on" href="index.html">Invoices</a><a href="new.html">New invoice</a></nav>
+    <a class="brand" href="invoices.html">Invoiceit</a>
+    <nav><a class="on" href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a href="business.html">Business</a></nav>
   </div>
   <div class="right"><a class="top-btn primary" href="new.html">+ New invoice</a></div>
 </header>
 
 <main class="view" id="view"></main>
+<footer class="credit noprint"><a class="coffee" href="https://buymeacoffee.com/brendanmebson" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a> Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></footer>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -28,7 +32,7 @@
   var S = Store, id = new URLSearchParams(location.search).get('id'), inv;
   var root = document.getElementById('view');
   function notFound(msg) {
-    root.innerHTML = '<div class="paperwrap"><div class="top"><a class="btn" href="index.html" style="align-self:flex-start">← All invoices</a><h1 style="margin:0;font-size:32px">' + S.esc(msg) + '</h1></div></div>';
+    root.innerHTML = '<div class="paperwrap"><div class="top"><a class="btn" href="invoices.html" style="align-self:flex-start">← All invoices</a><h1 style="margin:0;font-size:32px">' + S.esc(msg) + '</h1></div></div>';
   }
   S.ready().then(function () { return id ? S.get(id) : null; }).then(function (found) {
     if (!found) { notFound('Invoice not found'); return; }
@@ -36,7 +40,7 @@
   }).catch(function (err) { notFound('Could not load invoice. ' + err.message); });
 
   function start() {
-  document.title = 'Invoice ' + inv.no + ' · JB Enterprise';
+  document.title = 'Invoice ' + inv.no + ' · Invoiceit';
 
   function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(function () { t.style.display = 'none'; }, 2200); }
 
@@ -47,7 +51,7 @@
     }).join('') || '<div class="r"><span>No payments yet</span></div>';
     root.innerHTML =
       '<section class="paperwrap"><div class="top">' +
-        '<a href="index.html" class="back">← All invoices</a>' +
+        '<a href="invoices.html" class="back">← All invoices</a>' +
         '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px"><h1 style="margin:0;font-size:40px;line-height:1;font-weight:900;letter-spacing:-.03em">Invoice ' + S.esc(inv.no) + '</h1>' + S.badge(c.status) + '</div>' +
       '</div>' + S.paper(inv) + '</section>' +
       '<aside class="noprint">' +
@@ -58,6 +62,7 @@
           '<a class="btn" href="new.html?dup=' + encodeURIComponent(inv.id) + '">Duplicate invoice</a>' +
         '</div>' +
         '<div class="kv"><h3>SUMMARY</h3>' +
+          (inv.createdBy ? '<div class="r"><span>Created by</span><b class="by-email">' + S.esc(inv.createdBy) + '</b></div>' : '') +
           '<div class="r"><span>Total</span><b>' + m(c.total) + '</b></div>' +
           '<div class="r"><span>Paid</span><b>' + m(c.paid) + '</b></div>' +
           (c.change > 0 ? '<div class="r" style="border-bottom:1px solid #111"><span>Overpaid by</span><b>' + m(c.change) + '</b></div>'
@@ -83,7 +88,7 @@
       (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { toast('Link copied. Staff can open it on any device after signing in.'); }, function () { toast('Copy the address from the browser bar.'); });
     };
     document.getElementById('wa').onclick = function () {
-      var text = S.STORE_NAME + ' · Invoice ' + inv.no + '\nCustomer: ' + inv.cust + '\nTotal: ' + m(c.total) + '\nPaid: ' + m(c.paid) + (c.balance > 0 ? '\nLeft to pay: ' + m(c.balance) : '') + (c.change > 0 ? '\nChange: ' + m(c.change) : '') + '\nStatus: ' + c.status;
+      var text = inv.store.name + ' · Invoice ' + inv.no + '\nCustomer: ' + inv.cust + '\nTotal: ' + m(c.total) + '\nPaid: ' + m(c.paid) + (c.balance > 0 ? '\nLeft to pay: ' + m(c.balance) : '') + (c.change > 0 ? '\nChange: ' + m(c.change) : '') + '\nStatus: ' + c.status;
       window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
     };
     if (c.balance <= 0) return;

@@ -3,113 +3,251 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Invoices · JB Enterprise</title>
+<title>Invoiceit · Invoices that add up</title>
+<meta name="description" content="Invoiceit: write invoices, record part payments, see who still owes, and print or share on WhatsApp from any device.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/landing.css">
 </head>
-<body>
-<header class="topbar">
+<body class="landing">
+
+<div class="announce">
+  <span class="dot" aria-hidden="true"></span>
+  Try Invoiceit free for 14 days. No card needed to start.
+</div>
+
+<header class="topbar lp-top">
   <div class="left">
-    <a class="brand" href="index.html">JB Enterprise</a>
-    <nav><a class="on" href="index.html">Invoices</a><a href="new.html">New invoice</a></nav>
+    <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="26" height="26">Invoiceit</a>
+    <nav aria-label="Page sections"><a href="#how">How it works</a><a href="#features">Features</a><a href="#balances">Balances</a><a href="#pricing">Pricing</a></nav>
   </div>
-  <div class="right"><a class="top-btn primary" href="new.html">+ New invoice</a></div>
+  <div class="right"><a class="top-btn" href="invoices.html">Sign in</a><a class="top-btn primary" href="invoices.html#signup">Sign up <span aria-hidden="true">↗</span></a></div>
 </header>
 
-<main class="page">
-  <div class="head-row">
-    <h1>Invoices</h1>
-    <label class="f" style="width:320px;max-width:100%">Search
-      <input id="q" type="search" placeholder="Customer, number or item" style="text-transform:none;letter-spacing:0">
-    </label>
-  </div>
-
-  <div class="upload" id="upload" hidden></div>
-
-  <div class="stats" id="stats"></div>
-
-  <div class="seg" id="filters" style="align-self:flex-start">
-    <button data-f="ALL" aria-pressed="true">All</button>
-    <button data-f="PAID" aria-pressed="false">PAID</button>
-    <button data-f="PART-PAID" aria-pressed="false">PART-PAID</button>
-    <button data-f="UNPAID" aria-pressed="false">UNPAID</button>
-  </div>
-
-  <div class="table">
-    <div style="min-width:0">
-      <div class="thead"><span>NO.</span><span>DATE</span><span>CUSTOMER</span><span>ITEMS</span><span style="text-align:right">TOTAL</span><span>STATUS</span><span></span></div>
-      <div id="rows"></div>
-      <div class="empty" id="empty">Loading invoices…</div>
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-in">
+      <span class="chip"><span class="dot" aria-hidden="true"></span>For shops and small businesses</span>
+      <h1>Every sale on paper.<br><span class="hl">Every naira</span> accounted for.</h1>
+      <p class="lede">Write a proper invoice in under a minute, record full or part payments, and always know what each customer still owes, on the shop laptop or your phone.</p>
+      <div class="cta">
+        <a class="btn primary" href="invoices.html#signup">Create your account <span aria-hidden="true">↗</span></a>
+        <a class="btn" href="#how">See how it works</a>
+      </div>
     </div>
-  </div>
+
+    <!-- Product preview, built from the app's own styles -->
+    <div class="shot" aria-hidden="true">
+      <div class="shot-frame">
+        <div class="shot-bar"><span class="shot-brand">YOUR BUSINESS</span><span class="shot-tab on">Invoices</span><span class="shot-tab">New invoice</span><span class="shot-new">+ NEW INVOICE</span></div>
+        <div class="shot-body">
+          <div class="shot-h">Invoices</div>
+          <div class="stats">
+            <div class="stat"><span>INVOICED</span><span>₦ 1,131,500.00</span></div>
+            <div class="stat"><span>COLLECTED</span><span>₦ 414,500.00</span></div>
+            <div class="stat owed"><span>STILL OWED</span><span>₦ 717,000.00</span></div>
+            <div class="stat"><span>INVOICES</span><span>3</span></div>
+          </div>
+          <div class="table">
+            <div class="thead"><span>NO.</span><span>DATE</span><span>CUSTOMER</span><span>ITEMS</span><span style="text-align:right">TOTAL</span><span>STATUS</span><span></span></div>
+            <div class="row"><span class="meta"><span class="c-no">00003</span><span class="c-date">05-11-2026</span></span><span class="c-cust">Oluwaseun Adebayo</span><span class="c-items">Phone 256GB new × 1, Fast charger 65W × 2</span><span class="c-total">₦ 697,000.00</span><span class="c-status"><span class="badge part">PART-PAID</span></span><span></span></div>
+            <div class="row"><span class="meta"><span class="c-no">00002</span><span class="c-date">04-11-2026</span></span><span class="c-cust">Amaka Eze</span><span class="c-items">Wireless earbuds × 1</span><span class="c-total">₦ 14,500.00</span><span class="c-status"><span class="badge">PAID</span></span><span></span></div>
+            <div class="row"><span class="meta"><span class="c-no">00001</span><span class="c-date">03-11-2026</span></span><span class="c-cust">Tunde Bakare</span><span class="c-items">Laptop 15 inch × 1</span><span class="c-total">₦ 420,000.00</span><span class="c-status"><span class="badge unpaid">UNPAID</span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="float-card">
+        <div class="kv settle owed">
+          <h3>DOES IT ADD UP?</h3>
+          <div class="r"><span>Items total</span><b>₦ 697,000.00</b></div>
+          <div class="r"><span>Paid</span><b>₦ 400,000.00</b></div>
+          <div class="r owed"><span>Left to pay</span><b>₦ 297,000.00</b></div>
+          <p class="msg">Part paid. ₦ 297,000.00 left to pay.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FACTS (all true of the app; no invented numbers) -->
+  <section class="facts">
+    <div class="facts-lead">
+      <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg></span>
+      <p>Built for shops that sell the way you do: phones, laptops, accessories and more, paid in full or in parts.</p>
+    </div>
+    <div class="fact"><b>4</b><span>Currencies: ₦ $ £ €</span></div>
+    <div class="fact"><b>3</b><span>Clear statuses: paid, part-paid, unpaid</span></div>
+    <div class="fact"><b>0</b><span>Overpayments. The desk won't allow them</span></div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="sect" id="how">
+    <div class="sect-head">
+      <span class="chip light"><span class="dot" aria-hidden="true"></span>How it works</span>
+      <h2>From sale to receipt<br>in <span class="hl">four steps</span></h2>
+      <p>The same order the counter already works in. Nothing to learn, nothing to set up per sale.</p>
+    </div>
+    <ol class="steps">
+      <li class="step">
+        <i>01</i>
+        <h3>Add what was sold</h3>
+        <p>Product, IMEI or serial, quantity and price. Leave quantity blank and it counts as one.</p>
+        <div class="mini">
+          <div class="mini-line"><span>Phone 128GB new</span><b>₦ 620,000.00</b></div>
+          <div class="mini-line muted"><span>IMEI 35678901234…</span><span>× 1</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <i>02</i>
+        <h3>Record how they paid</h3>
+        <p>Pick Cash, Bank Transfer or POS. Add as many part payments as the customer makes.</p>
+        <div class="mini">
+          <div class="mini-pick"><span>Bank Transfer</span><svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="#111" stroke-width="2"/></svg></div>
+          <div class="mini-opts"><span>Cash</span><span class="on">Bank Transfer</span><span>POS</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <i>03</i>
+        <h3>Check it adds up</h3>
+        <p>The desk compares payments with the items total as you type, and refuses to save an overpayment.</p>
+        <div class="mini">
+          <div class="mini-line"><span>Left to pay</span><b class="red">₦ 297,000.00</b></div>
+          <div class="mini-line ok"><span>Fully paid. Payments match.</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <i>04</i>
+        <h3>Print or share</h3>
+        <p>Save as PDF, print on the shop printer, or send the summary straight to the customer on WhatsApp.</p>
+        <div class="mini mini-btns">
+          <span class="b dark">Download PDF</span><span class="b">WhatsApp</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="sect" id="features">
+    <div class="sect-head">
+      <span class="chip light"><span class="dot" aria-hidden="true"></span>Features</span>
+      <h2>Everything the counter needs,<br><span class="hl">nothing it doesn't</span></h2>
+    </div>
+
+    <div class="feat-grid">
+      <article class="feat">
+        <div class="feat-vis vis-paper" aria-hidden="true">
+          <div class="paper mini-paper"><div class="in-pad">
+            <div class="p-head"><span class="p-name">Your Business</span><span class="p-addr">Your shop address</span></div>
+            <div class="p-title">Invoice</div>
+            <div class="p-grid p-th"><span>Product</span><span>Qty</span><span>Price</span><span>Subtotal</span></div>
+            <div class="p-grid p-tr"><div><div class="pn">Phone 256GB new</div></div><span>1</span><span>660,000</span><span>660,000</span></div>
+            <div class="p-grid p-tr"><div><div class="pn">Fast charger 65W</div></div><span>2</span><span>18,500</span><span>37,000</span></div>
+            <div class="p-sum"><b>Total:</b><span>₦ 697,000.00</span></div>
+          </div></div>
+        </div>
+        <h3>Your name on every invoice</h3>
+        <p>A clean, printable layout with your business name, address and phone at the top of every page.</p>
+      </article>
+
+      <article class="feat">
+        <div class="feat-vis vis-owed" aria-hidden="true">
+          <div class="stat owed"><span>STILL OWED</span><span>₦ 717,000.00</span></div>
+          <div class="seg"><button tabindex="-1">All</button><button tabindex="-1">PAID</button><button tabindex="-1" aria-pressed="true">PART-PAID</button><button tabindex="-1">UNPAID</button></div>
+        </div>
+        <h3>See who still owes, at a glance</h3>
+        <p>Totals for invoiced, collected and still owed, with filters and search by customer, number or item.</p>
+      </article>
+
+      <article class="feat">
+        <div class="feat-vis vis-phone" aria-hidden="true">
+          <div class="phone">
+            <div class="phone-top">YOUR BUSINESS</div>
+            <div class="phone-row"><span>Amaka Eze</span><span class="badge">PAID</span></div>
+            <div class="phone-row"><span>Tunde Bakare</span><span class="badge unpaid">UNPAID</span></div>
+            <div class="phone-btn">+ NEW INVOICE</div>
+          </div>
+        </div>
+        <h3>Works on the phone in your pocket</h3>
+        <p>Same invoices on the shop laptop and every staff phone. Sell on the floor, print at the counter.</p>
+      </article>
+    </div>
+
+    <ul class="feat-list">
+      <li><span class="tick" aria-hidden="true"></span><div><b>Invoice numbers never clash</b><span>The database hands out the next number, even with two devices selling at once.</span></div></li>
+      <li><span class="tick" aria-hidden="true"></span><div><b>Your team only</b><span>Each business sees only its own invoices. Owners add staff with a one-time join code.</span></div></li>
+      <li><span class="tick" aria-hidden="true"></span><div><b>Duplicate in one tap</b><span>Selling the same bundle again? Copy an invoice and change the customer.</span></div></li>
+      <li><span class="tick" aria-hidden="true"></span><div><b>Discount, delivery and VAT</b><span>Optional extras that only appear on the invoice when they're used.</span></div></li>
+    </ul>
+  </section>
+
+  <!-- SPLIT -->
+  <section class="split" id="balances">
+    <div class="split-text">
+      <span class="chip light"><span class="dot" aria-hidden="true"></span>Part payments</span>
+      <h2>Never lose track<br>of a <span class="hl">balance</span></h2>
+      <p>When a customer pays in parts, each payment goes on the invoice with its method and date. The desk shows exactly what's left and won't let anyone record more than that.</p>
+      <a class="btn dark" href="invoices.html">Open Invoiceit <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="split-vis" aria-hidden="true">
+      <div class="kv sum-card">
+        <h3>SUMMARY</h3>
+        <div class="r"><span>Total</span><b>₦ 697,000.00</b></div>
+        <div class="r"><span>Paid</span><b>₦ 400,000.00</b></div>
+        <div class="r" style="border-bottom:1px solid #111"><span>Left to pay</span><b>₦ 297,000.00</b></div>
+        <p class="msg">Part paid. ₦ 297,000.00 left to pay.</p>
+      </div>
+      <div class="kv sum-card pays">
+        <h3>PAYMENTS</h3>
+        <div class="r"><span>Bank Transfer<small>05-11-2026</small></span><b>₦ 400,000.00</b></div>
+        <div class="r"><span>POS<small>Today</small></span><b class="pending">₦ 297,000.00</b></div>
+        <div class="limit">Up to ₦ 297,000.00 (what is left to pay)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="sect pricing" id="pricing">
+    <div class="sect-head">
+      <span class="chip light"><span class="dot" aria-hidden="true"></span>Pricing</span>
+      <h2>One plan.<br><span class="hl">14 days free.</span></h2>
+      <p>Everything in Invoiceit, for the whole team. Try it free, then pay monthly with Paystack.</p>
+    </div>
+    <div class="price-card">
+      <div class="price-top">
+        <span class="price-name">Invoiceit</span>
+        <span class="price"><b>₦20,000</b><span>/ month</span></span>
+        <span class="price-sub">after your 14-day free trial</span>
+      </div>
+      <ul>
+        <li><span class="tick" aria-hidden="true"></span>Unlimited invoices and part payments</li>
+        <li><span class="tick" aria-hidden="true"></span>Owner plus as many staff as you need</li>
+        <li><span class="tick" aria-hidden="true"></span>Print, PDF and WhatsApp sharing</li>
+        <li><span class="tick" aria-hidden="true"></span>Works on laptop and phone</li>
+        <li><span class="tick" aria-hidden="true"></span>Pay by card, bank transfer or USSD via Paystack</li>
+      </ul>
+      <a class="btn primary" href="invoices.html#signup">Start your free trial <span aria-hidden="true">↗</span></a>
+      <p class="price-fine">No card needed to start. After 14 days the owner can subscribe from inside the app. Businesses that stay unpaid are locked, then permanently deleted 14 days later.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band">
+    <h2>Ready for the <span class="hl">next sale?</span></h2>
+    <p>14 days free, then ₦20,000 a month. Write your first invoice in minutes.</p>
+    <div class="cta"><a class="btn primary" href="invoices.html#signup">Start your free trial <span aria-hidden="true">↗</span></a><a class="btn" href="invoices.html">Sign in</a></div>
+  </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="js/config.js"></script>
-<script src="js/store.js"></script>
-<script>
-(function () {
-  var S = Store, filter = 'ALL', q = '', data = [];
+<footer class="lp-foot">
+  <span class="brand-sm">Invoiceit</span>
+  <nav aria-label="Footer"><a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="invoices.html">Sign in</a><a href="invoices.html#signup">Sign up</a></nav>
+  <a class="coffee" href="https://buymeacoffee.com/brendanmebson" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a>
+  <span class="credit-in">Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></span>
+</footer>
 
-  function renderStats() {
-    var invoiced = data.reduce(function (a, d) { return a + d.c.total; }, 0);
-    var owed = data.reduce(function (a, d) { return a + d.c.balance; }, 0);
-    var paid = invoiced - owed;
-    document.getElementById('stats').innerHTML =
-      '<div class="stat"><span>INVOICED</span><span>' + S.money(invoiced, 'NGN') + '</span></div>' +
-      '<div class="stat"><span>COLLECTED</span><span>' + S.money(paid, 'NGN') + '</span></div>' +
-      '<div class="stat owed"><span>STILL OWED</span><span>' + S.money(owed, 'NGN') + '</span></div>' +
-      '<div class="stat"><span>INVOICES</span><span>' + data.length + '</span></div>';
-  }
-  function renderRows() {
-    var needle = q.trim().toLowerCase();
-    var list = data.filter(function (d) {
-      var hay = (d.inv.cust + ' ' + d.inv.no + ' ' + d.inv.items.map(function (i) { return i.desc; }).join(' ')).toLowerCase();
-      return (filter === 'ALL' || d.c.status === filter) && (needle === '' || hay.indexOf(needle) >= 0);
-    });
-    document.getElementById('rows').innerHTML = list.map(function (d) {
-      var items = d.inv.items.map(function (i) { return S.esc(i.desc) + ' × ' + S.esc(S.plain(S.qty(i)).replace('.00', '')); }).join(', ');
-      return '<a class="row" href="invoice.html?id=' + encodeURIComponent(d.inv.id) + '">' +
-        '<span class="meta"><span class="c-no">' + S.esc(d.inv.no) + '</span><span class="c-date">' + S.esc(d.inv.date.split(' ')[0]) + '</span></span>' +
-        '<span class="c-cust">' + S.esc(d.inv.cust) + '</span><span class="c-items">' + items + '</span>' +
-        '<span class="c-total">' + S.money(d.c.total, d.inv.currency) + '</span><span class="c-status">' + S.badge(d.c.status) + '</span>' +
-        '<svg class="c-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>';
-    }).join('');
-    document.getElementById('empty').hidden = list.length > 0;
-    document.getElementById('empty').textContent = data.length ? 'No invoices match that search or filter.' : 'No invoices yet. Create your first one.';
-  }
-  document.getElementById('q').addEventListener('input', function (e) { q = e.target.value; renderRows(); });
-  document.getElementById('filters').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    filter = b.dataset.f;
-    [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-    renderRows();
-  });
-  function renderUpload() {
-    var n = S.localInvoices().length, box = document.getElementById('upload');
-    box.hidden = n === 0; if (!n) return;
-    box.innerHTML = '<span><b>' + n + ' invoice' + (n > 1 ? 's are' : ' is') + ' saved only on this device.</b> Upload ' + (n > 1 ? 'them' : 'it') +
-      ' so every device can see ' + (n > 1 ? 'them' : 'it') + '. ' + (n > 1 ? 'They' : 'It') + ' will get new invoice numbers.</span>' +
-      '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="doClear">Clear</button>' +
-      '<button class="btn dark" type="button" id="doUpload">Upload ' + n + '</button></span>';
-    document.getElementById('doClear').onclick = function () {
-      if (!confirm('Delete the ' + n + ' invoice' + (n > 1 ? 's' : '') + ' saved on this device? This cannot be undone.')) return;
-      S.clearLocal(); renderUpload();
-    };
-    document.getElementById('doUpload').onclick = function () {
-      this.disabled = true; this.textContent = 'Uploading…';
-      S.uploadLocal().then(load, function (err) { box.querySelector('span').textContent = 'Upload stopped: ' + err.message + ' Reload and try again.'; });
-    };
-  }
-  function load() {
-    return S.all().then(function (list) {
-      data = list.map(function (i) { return { inv: i, c: S.calc(i) }; });
-      renderStats(); renderRows(); renderUpload();
-    });
-  }
-  S.ready().then(load).catch(function (err) { document.getElementById('empty').textContent = 'Could not load invoices. ' + err.message; });
-})();
-</script>
 </body>
 </html>

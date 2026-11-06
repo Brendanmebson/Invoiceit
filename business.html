@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business · Invoiceit</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="left">
+    <a class="brand" href="invoices.html">Invoiceit</a>
+    <nav><a href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a class="on" href="business.html">Business</a></nav>
+  </div>
+  <div class="right"><a class="top-btn primary" href="new.html">+ New invoice</a></div>
+</header>
+
+<main class="page biz-page">
+  <h1>Business</h1>
+
+  <section class="sec">
+    <h2><i>01</i>Subscription</h2>
+    <div id="plan" class="plan">Loading…</div>
+    <div class="pay-row" id="payRow" hidden>
+      <label class="f">Pay for<select id="months"><option value="1">1 month · ₦20,000</option><option value="3">3 months · ₦60,000</option><option value="6">6 months · ₦120,000</option><option value="12">12 months · ₦240,000</option></select></label>
+      <button class="btn primary" type="button" id="payBtn">Pay with Paystack</button>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2><i>02</i>Details on every invoice</h2>
+    <p class="hint" id="detailsHint">These print at the top of new invoices. Invoices already saved keep the details they were made with.</p>
+    <form id="details" class="biz-form">
+      <label class="f">Business name<input id="bName" maxlength="80" required placeholder="e.g. Adebayo Gadgets"></label>
+      <label class="f">Shop address<input id="bAddr" placeholder="Shop no., plaza, street, area, city"></label>
+      <label class="f">Phone numbers<input id="bPhone" class="mono" placeholder="0800 000 0000"></label>
+      <button class="btn primary" type="submit" id="bSave">Save details</button>
+    </form>
+  </section>
+
+  <section class="sec">
+    <h2><i>03</i>Team</h2>
+    <div class="box" id="members"><div class="line">Loading…</div></div>
+  </section>
+
+  <section class="sec" id="addSec" hidden>
+    <h2><i>04</i>Add someone</h2>
+    <p class="hint">Make a join code and give it to the person. They choose <b>Create an account</b>, tap <b>Use a join code</b> and enter it. Each code works once and expires after 7 days.</p>
+    <div class="code-actions">
+      <button class="btn dark" type="button" data-role="staff">New staff code</button>
+      <button class="btn" type="button" data-role="owner">New owner code</button>
+    </div>
+    <div class="box" id="codes"></div>
+  </section>
+</main>
+
+<footer class="credit noprint"><a class="coffee" href="https://buymeacoffee.com/brendanmebson" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a> Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></footer>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script>
+(function () {
+  var S = Store;
+  function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(function () { t.style.display = 'none'; }, 2600); }
+  function $(id) { return document.getElementById(id); }
+
+  S.ready().then(function () {
+    var b = S.business(), owner = S.isOwner();
+    if (!owner) { location.replace('invoices.html'); return; } // staff just use invoices
+    showPlan();
+    $('bName').value = b.name; $('bAddr').value = b.addr; $('bPhone').value = b.phone;
+    $('addSec').hidden = false;
+    loadTeam();
+  }).catch(function (err) { toast('Could not load. ' + err.message); });
+
+  function showPlan() {
+    var bl = S.billing() || {}, el = $('plan');
+    if (bl.free_forever) { el.innerHTML = '<b>Free forever</b><span>This business never needs to pay.</span>'; return; }
+    var days = S.daysLeft(bl.access_until);
+    el.className = 'plan' + (days <= 5 ? ' warn' : '');
+    el.innerHTML = bl.on_trial
+      ? '<b>Free trial · ' + days + ' day' + (days === 1 ? '' : 's') + ' left</b><span>Ends ' + S.fmtDate(bl.access_until) + '. Then ₦20,000 a month. You can pay now; paid time starts after the trial.</span>'
+      : '<b>Paid until ' + S.fmtDate(bl.access_until) + '</b><span>' + days + ' day' + (days === 1 ? '' : 's') + ' left. Paying again adds time on top.</span>';
+    el.innerHTML += '<span class="hint">Unpaid businesses are locked when their time runs out and deleted 14 days later.</span>';
+    $('payRow').hidden = false;
+  }
+  $('payBtn').onclick = function () {
+    var btn = this; btn.disabled = true; btn.textContent = 'Opening Paystack…';
+    S.pay(+$('months').value).catch(function (err) { btn.disabled = false; btn.textContent = 'Pay with Paystack'; toast(err.message); });
+  };
+
+  $('details').onsubmit = function (e) {
+    e.preventDefault();
+    var name = $('bName').value.trim();
+    if (!name) { toast('Enter the business name.'); return; }
+    var btn = $('bSave'); btn.disabled = true; btn.textContent = 'Saving…';
+    S.updateBusiness({ name: name, addr: $('bAddr').value.trim(), phone: $('bPhone').value.trim() }).then(function (biz) {
+      [].forEach.call(document.querySelectorAll('.topbar .brand .biz'), function (el) { el.textContent = biz.name; });
+      toast('Saved.');
+    }).catch(function (err) { toast('Not saved. ' + err.message); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Save details'; });
+  };
+
+  function loadTeam() {
+    S.team().then(function (t) {
+      var owner = S.isOwner();
+      $('members').innerHTML = t.members.map(function (m) {
+        var you = m.user_id === t.myId;
+        return '<div class="line member"><span class="who">' + S.esc(m.email || 'No email') + (you ? ' <small>(you)</small>' : '') + '</span>' +
+          '<span class="badge' + (m.role === 'owner' ? '' : ' part') + '">' + m.role.toUpperCase() + '</span>' +
+          (owner && !you ? '<button class="x" type="button" aria-label="Remove ' + S.esc(m.email) + '" data-rm="' + m.user_id + '" data-email="' + S.esc(m.email) + '">×</button>' : '<span></span>') + '</div>';
+      }).join('');
+      $('codes').innerHTML = t.codes.length ? t.codes.map(function (c) {
+        return '<div class="line member"><span class="who"><b class="code">' + S.esc(c.code) + '</b><small>' + (c.role === 'owner' ? 'Owner' : 'Staff') + ' · expires ' + new Date(c.expires_at).toLocaleDateString() + '</small></span>' +
+          '<button class="btn" type="button" data-copy="' + S.esc(c.code) + '">Copy</button>' +
+          '<button class="x" type="button" aria-label="Cancel code" data-del="' + S.esc(c.code) + '">×</button></div>';
+      }).join('') : '<div class="line hint">No open codes.</div>';
+    }).catch(function (err) { $('members').innerHTML = '<div class="line">Could not load the team. ' + S.esc(err.message) + '</div>'; });
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.role) {
+      t.disabled = true;
+      S.newJoinCode(t.dataset.role).then(function (code) { loadTeam(); toast('Code ' + code + ' created.'); })
+        .catch(function (err) { toast(err.message); }).then(function () { t.disabled = false; });
+    } else if (t.dataset.copy) {
+      (navigator.clipboard ? navigator.clipboard.writeText(t.dataset.copy) : Promise.reject()).then(function () { toast('Copied.'); }, function () { toast('Code: ' + t.dataset.copy); });
+    } else if (t.dataset.del) {
+      S.deleteJoinCode(t.dataset.del).then(loadTeam).catch(function (err) { toast(err.message); });
+    } else if (t.dataset.rm) {
+      if (!confirm('Remove ' + t.dataset.email + ' from this business? They will no longer see its invoices.')) return;
+      S.removeMember(t.dataset.rm).then(function () { loadTeam(); toast('Removed.'); }).catch(function (err) { toast(err.message); });
+    }
+  });
+})();
+</script>
+</body>
+</html>

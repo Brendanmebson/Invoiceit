@@ -1,9 +1,8 @@
-/* JB Enterprise invoices: storage (Supabase), maths and the printed-invoice template.
+/* Invoiceit: storage (Supabase), maths and the printed-invoice template.
    Needs js/config.js and supabase-js loaded first. */
 (function () {
   var KEY = 'invoicedesk.invoices.v1';
   var SKEY = 'invoicedesk.settings.v1';
-  var STORE_NAME = 'JB Enterprise';
   var SYMS = { NGN: '₦', USD: '$', GBP: '£', EUR: '€' };
 
   function esc(s) {
@@ -23,8 +22,7 @@
   }
 
   /* ---------- Supabase ---------- */
-  var db = window.supabase.createClient(window.JB_CONFIG.url, window.JB_CONFIG.key);
-  var DEFAULTS = { addr: '', phone: '', salesBy: '' };
+  var db = window.supabase.createClient(window.INVOICEIT_CONFIG.url, window.INVOICEIT_CONFIG.key);
   var user = null;
 
   function fail(error) { throw new Error(error.message || 'Could not reach the server. Check the internet connection.'); }
@@ -35,46 +33,213 @@
     return d;
   }
 
-  /* Sign-in gate. Resolves once a JB Enterprise staff member is signed in. */
+  var me = null; // { role, business: { id, name, addr, phone } }
+  var APP = 'Invoiceit';
+
+  /* Sign-in gate. Resolves once the person is signed in and belongs to a business. */
   function ready() {
     return db.auth.getSession().then(function (r) {
       user = r.data.session && r.data.session.user;
-      if (!user) return gate('signin');
-      return db.rpc('jb_is_staff').then(function (r2) {
+      var ref = new URLSearchParams(location.search).get('reference');
+      if (user && ref) return verifyPayment(ref).then(function () { history.replaceState(null, '', location.pathname); }, function () {}).then(function () { return r; });
+      return r;
+    }).then(function (r) {
+      user = r.data.session && r.data.session.user;
+      if (!user) return gate(location.hash === '#signup' ? 'signup' : 'signin');
+      // Clean-up instead of a cron job: removes businesses past their deletion date (never this one if it's paid up).
+      return db.rpc('invoiceit_purge_expired').then(function () {}, function () {}).then(function () { return db.rpc('invoiceit_me'); }).then(function (r2) {
         if (r2.error) return gate('signin', r2.error.message);
-        if (!r2.data) return gate('denied');
-        addSignOut();
-        return user;
+        if (r2.data) return enter(r2.data);
+        // New account: finish setup with what they typed at sign-up, if anything.
+        var md = user.user_metadata || {};
+        if (!md.business_name && !md.join_code) return gate('setup');
+        return db.rpc('invoiceit_setup', { p_business_name: md.business_name || null, p_join_code: md.join_code || null }).then(function (r3) {
+          if (r3.error || !r3.data) return gate('setup', r3.error && r3.error.message);
+          return enter(r3.data);
+        });
       });
     });
+  }
+  function enter(data) {
+    me = data;
+    if (me.billing && !me.billing.active) return locked();
+    [].forEach.call(document.querySelectorAll('.topbar .brand'), function (b) {
+      b.innerHTML = '<span class="biz">' + esc(me.business.name) + '</span><span class="by">on ' + APP + '</span>';
+      b.title = me.business.name;
+    });
+    addSignOut();
+    if (!isOwner()) { [].forEach.call(document.querySelectorAll('.topbar nav a[href="business.html"]'), function (a) { a.remove(); }); }
+    trialBanner();
+    askForDetails();
+    return me;
+  }
+
+  /* ---------- Billing: 14-day trial, then ₦20,000 a month via Paystack ---------- */
+  var PRICE_KOBO = 2000000;
+  function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
+  function daysLeft(iso) { return Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 86400000)); }
+  function billing() { return (me && me.billing) || null; }
+  function callBilling(body) {
+    return db.functions.invoke('invoiceit-billing', { body: body }).then(function (r) {
+      if (r.error) {
+        return (r.error.context && r.error.context.json ? r.error.context.json() : Promise.resolve({})).then(function (j) {
+          throw new Error(j.error || 'Payment service is not available yet. Please try again later.');
+        }, function () { throw new Error('Payment service is not available yet. Please try again later.'); });
+      }
+      if (r.data && r.data.error) throw new Error(r.data.error);
+      return r.data;
+    });
+  }
+  /* Sends the owner to Paystack; Paystack brings them back to this page with ?reference=... */
+  function pay(months) {
+    var back = location.origin + location.pathname;
+    return callBilling({ action: 'init', months: months || 1, callback_url: back }).then(function (d) { location.href = d.authorization_url; });
+  }
+  function verifyPayment(ref) { return callBilling({ action: 'verify', reference: ref }); }
+
+  function trialBanner() {
+    var b = billing(); if (!b || b.free_forever || !isOwner()) return;
+    var days = daysLeft(b.access_until);
+    if (!b.on_trial && days > 5) return;
+    var el = document.createElement('div');
+    el.className = 'trial-bar';
+    el.innerHTML = '<span>' + (b.on_trial ? 'Free trial: <b>' + days + ' day' + (days === 1 ? '' : 's') + ' left</b> (ends ' + fmtDate(b.access_until) + ').'
+      : 'Your subscription ends in <b>' + days + ' day' + (days === 1 ? '' : 's') + '</b>.') + ' ₦20,000 a month after that.</span>' +
+      '<button type="button" class="btn" id="trialPay">Pay now</button>';
+    document.body.insertBefore(el, document.body.firstChild);
+    el.querySelector('#trialPay').onclick = function () { this.disabled = true; this.textContent = 'Opening Paystack…'; var t = this; pay(1).catch(function (e) { t.disabled = false; t.textContent = 'Pay now'; alert(e.message); }); };
+  }
+
+  function locked() {
+    var b = billing(), owner = isOwner(), trial = !b.paid_until;
+    var el = document.createElement('div');
+    el.className = 'gate';
+    document.body.appendChild(el);
+    el.innerHTML = '<div class="gate-card"><a class="gate-brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">' + APP + '</a>' +
+      '<h1>' + (trial ? 'Your free trial has ended' : 'Your subscription has ended') + '</h1>' +
+      '<p><b>' + esc(me.business.name) + '</b> no longer has access to its invoices. ' +
+      (owner ? 'Subscribe for <b>₦20,000 a month</b> to pick up where you left off.' : 'Ask your business owner to renew the subscription.') + '</p>' +
+      '<p class="gate-note">If it stays unpaid, all of this business\'s invoices and team will be permanently deleted on <b>' + fmtDate(b.delete_at) + '</b>.</p>' +
+      (owner ? '<label class="f">Pay for<select id="lkMonths"><option value="1">1 month · ₦20,000</option><option value="3">3 months · ₦60,000</option><option value="6">6 months · ₦120,000</option><option value="12">12 months · ₦240,000</option></select></label>' +
+        '<button class="btn primary" type="button" id="lkPay">Pay with Paystack</button>' : '') +
+      '<button class="btn ghost" type="button" id="lkOut">Sign out</button></div>';
+    if (owner) el.querySelector('#lkPay').onclick = function () {
+      var btn = this; btn.disabled = true; btn.textContent = 'Opening Paystack…';
+      pay(+el.querySelector('#lkMonths').value).catch(function (e) { btn.disabled = false; btn.textContent = 'Pay with Paystack'; alert(e.message); });
+    };
+    el.querySelector('#lkOut').onclick = function () { db.auth.signOut().then(function () { location.href = 'index.html'; }); };
+    return new Promise(function () {});
+  }
+
+  /* First sign-in as owner: ask for the details that go on every invoice. */
+  function askForDetails() {
+    var b = business();
+    if (!isOwner() || (b.addr && b.phone)) return;
+    try { if (sessionStorage.getItem('invoiceit.skipDetails') === b.id) return; } catch (e) {}
+    var el = document.createElement('div');
+    el.className = 'gate modal';
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'dtTitle');
+    el.innerHTML = '<form class="gate-card" id="dtForm"><a class="gate-brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">' + APP + '</a>' +
+      '<h1 id="dtTitle">Your business details</h1><p>These print at the top of every invoice. Fill them in once and your team never has to type them.</p>' +
+      '<label class="f">Business name<input id="dtName" maxlength="80" required value="' + esc(b.name) + '"></label>' +
+      '<label class="f">Shop address<input id="dtAddr" placeholder="Shop no., plaza, street, area, city" value="' + esc(b.addr) + '"></label>' +
+      '<label class="f">Phone numbers<input id="dtPhone" class="mono" placeholder="0800 000 0000" value="' + esc(b.phone) + '"></label>' +
+      '<p class="gate-note" id="dtNote" hidden></p>' +
+      '<button class="btn primary" type="submit" id="dtSave">Save details</button>' +
+      '<button class="btn ghost" type="button" id="dtLater">Later</button></form>';
+    document.body.appendChild(el);
+    el.querySelector('#dtAddr').focus();
+    el.querySelector('#dtLater').onclick = function () { try { sessionStorage.setItem('invoiceit.skipDetails', b.id); } catch (e) {} el.remove(); };
+    el.querySelector('#dtForm').onsubmit = function (e) {
+      e.preventDefault();
+      var name = el.querySelector('#dtName').value.trim(), note = el.querySelector('#dtNote'), btn = el.querySelector('#dtSave');
+      if (!name) { note.hidden = false; note.textContent = 'Enter the business name.'; return; }
+      btn.disabled = true; btn.textContent = 'Saving…';
+      updateBusiness({ name: name, addr: el.querySelector('#dtAddr').value.trim(), phone: el.querySelector('#dtPhone').value.trim() }).then(function (biz) {
+        [].forEach.call(document.querySelectorAll('.topbar .brand .biz'), function (x) { x.textContent = biz.name; });
+        el.remove();
+        document.dispatchEvent(new CustomEvent('invoiceit:business', { detail: biz }));
+      }).catch(function (err) { btn.disabled = false; btn.textContent = 'Save details'; note.hidden = false; note.textContent = err.message; });
+    };
   }
   function gate(mode, msg) {
     var el = document.createElement('div');
     el.className = 'gate';
     document.body.appendChild(el);
+    var logo = '<a class="gate-brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">' + APP + '</a>';
+    function field(id, label, type, extra) {
+      return '<label class="f">' + label + '<input id="' + id + '" type="' + type + '" ' + (extra || '') + ' style="text-transform:none;letter-spacing:0"></label>';
+    }
     function draw(m, note) {
-      if (m === 'denied') {
-        el.innerHTML = '<div class="gate-card"><div class="gate-brand">' + esc(STORE_NAME) + '</div>' +
-          '<h1>No access yet</h1><p>You are signed in as <b>' + esc(user.email) + '</b>, but this account is not on the ' + esc(STORE_NAME) +
-          ' staff list. Ask the owner to add it, then reload.</p>' +
-          '<button class="btn dark" id="gOut">Sign out</button></div>';
-        el.querySelector('#gOut').onclick = function () { db.auth.signOut().then(function () { location.reload(); }); };
-        return;
+      var html;
+      if (m === 'setup') {
+        html = '<h1>Set up your business</h1><p>Signed in as <b>' + esc(user.email) + '</b>. Name your business, or enter a join code if your business already uses ' + APP + '.</p>' +
+          field('gBiz', 'Business name', 'text', 'maxlength="80" placeholder="e.g. Adebayo Gadgets" autocomplete="organization"') +
+          '<div class="gate-or"><span>or</span></div>' +
+          field('gCode', 'Join code from your owner', 'text', 'maxlength="12" placeholder="e.g. 7F3K9Q2A" autocapitalize="characters"') +
+          (note ? '<p class="gate-note">' + esc(note) + '</p>' : '') +
+          '<button class="btn primary" type="submit" id="gGo">Continue</button>' +
+          '<button class="btn ghost" type="button" id="gOut">Sign out</button>';
+      } else if (m === 'signup') {
+        html = '<h1>Create your account</h1>' +
+          field('gEmail', 'Email', 'email', 'autocomplete="email" required') +
+          field('gPass', 'Password', 'password', 'minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"') +
+          '<div id="gBizWrap">' + field('gBiz', 'Business name', 'text', 'maxlength="80" placeholder="e.g. Adebayo Gadgets" autocomplete="organization"') + '</div>' +
+          '<div id="gCodeWrap" hidden>' + field('gCode', 'Join code from your owner', 'text', 'maxlength="12" placeholder="e.g. 7F3K9Q2A" autocapitalize="characters"') + '</div>' +
+          '<button class="linkish" type="button" id="gJoin">Joining a business that already uses ' + APP + '? Use a join code</button>' +
+          (note ? '<p class="gate-note">' + esc(note) + '</p>' : '') +
+          '<button class="btn primary" type="submit" id="gGo">Create account</button>' +
+          '<p class="gate-swap">Already have an account? <button class="linkish" type="button" id="gSwap">Sign in</button></p>';
+      } else {
+        html = '<h1>Sign in</h1>' +
+          field('gEmail', 'Email', 'email', 'autocomplete="email" required') +
+          field('gPass', 'Password', 'password', 'autocomplete="current-password" required') +
+          (note ? '<p class="gate-note">' + esc(note) + '</p>' : '') +
+          '<button class="btn primary" type="submit" id="gGo">Sign in</button>' +
+          '<p class="gate-swap">New to ' + APP + '? <button class="linkish" type="button" id="gSwap">Create an account</button></p>';
       }
-      el.innerHTML = '<form class="gate-card" id="gForm"><div class="gate-brand">' + esc(STORE_NAME) + '</div>' +
-        '<h1>Sign in</h1>' +
-        '<label class="f">Email<input id="gEmail" type="email" autocomplete="email" required style="text-transform:none;letter-spacing:0"></label>' +
-        '<label class="f">Password<input id="gPass" type="password" autocomplete="current-password" required></label>' +
-        (note ? '<p class="gate-note">' + esc(note) + '</p>' : '') +
-        '<button class="btn primary" type="submit" id="gGo">Sign in</button>' +
-        '<p style="font-size:13px;color:var(--mute)">No account? Ask the owner to create one for you.</p></form>';
-      el.querySelector('#gForm').onsubmit = function (e) {
+      el.innerHTML = '<form class="gate-card" id="gForm" novalidate>' + logo + html + '</form>';
+      var $ = function (id) { return el.querySelector('#' + id); };
+      if ($('gSwap')) $('gSwap').onclick = function () { history.replaceState(null, '', m === 'signup' ? '#' : '#signup'); draw(m === 'signup' ? 'signin' : 'signup'); };
+      if ($('gOut')) $('gOut').onclick = function () { db.auth.signOut().then(function () { location.href = 'index.html'; }); };
+      if ($('gJoin')) $('gJoin').onclick = function () {
+        var joining = $('gCodeWrap').hidden;
+        $('gCodeWrap').hidden = !joining; $('gBizWrap').hidden = joining;
+        this.textContent = joining ? 'Starting a new business instead? Enter its name' : 'Joining a business that already uses ' + APP + '? Use a join code';
+        (joining ? $('gCode') : $('gBiz')).focus();
+      };
+      var first = el.querySelector('input'); if (first) first.focus();
+      $('gForm').onsubmit = function (e) {
         e.preventDefault();
-        var go = el.querySelector('#gGo');
-        go.disabled = true; go.textContent = 'Signing in…';
-        db.auth.signInWithPassword({ email: el.querySelector('#gEmail').value.trim(), password: el.querySelector('#gPass').value }).then(function (r) {
-          if (r.error) { draw('signin', r.error.message === 'Invalid login credentials' ? 'Wrong email or password.' : r.error.message); return; }
-          location.reload();
+        var go = $('gGo'), val = function (id) { return $(id) && !$(id).closest('[hidden]') ? $(id).value.trim() : ''; };
+        var biz = val('gBiz'), code = val('gCode').toUpperCase();
+        if (m !== 'signin' && !biz && !code) { draw(m, 'Enter your business name, or a join code.'); return; }
+        if (m !== 'setup') {
+          var email = val('gEmail'), pass = $('gPass').value;
+          if (!email || !pass) { draw(m, 'Enter your email and password.'); return; }
+          if (m === 'signup' && pass.length < 8) { draw(m, 'Use a password of at least 8 characters.'); return; }
+        }
+        go.disabled = true; go.textContent = 'Please wait…';
+        var call;
+        if (m === 'setup') call = db.rpc('invoiceit_setup', { p_business_name: biz || null, p_join_code: code || null });
+        else if (m === 'signup') call = db.auth.signUp({ email: email, password: pass, options: { data: { business_name: biz || null, join_code: code || null } } });
+        else call = db.auth.signInWithPassword({ email: email, password: pass });
+        call.then(function (r) {
+          if (r.error) {
+            var msg = r.error.message;
+            if (msg === 'Invalid login credentials') msg = 'Wrong email or password.';
+            if (/already registered/i.test(msg)) msg = 'That email already has an account. Sign in instead.';
+            draw(m, msg); return;
+          }
+          if (m === 'signup' && !r.data.session) { draw('signin', 'Account created. Open the confirmation email, then sign in.'); return; }
+          if (m === 'signup') {
+            // Signed in straight away: create or join the business now.
+            return db.rpc('invoiceit_setup', { p_business_name: biz || null, p_join_code: code || null }).then(function (r2) {
+              if (r2.error) { user = r.data.user; draw('setup', r2.error.message); return; }
+              location.hash = ''; location.reload();
+            });
+          }
+          location.hash = ''; location.reload();
         });
       };
     }
@@ -89,44 +254,60 @@
     right.insertBefore(b, right.firstChild);
   }
 
-  /* Shop address and phone are shared by every device; "Sales by" is remembered per device. */
+  function business() { return me && me.business; }
+  function isOwner() { return !!me && me.role === 'owner'; }
+
+  /* Shop address and phone belong to the business; "Sales by" is remembered per device. */
   function settings() {
-    return db.from('jb_settings').select('data').eq('id', 1).maybeSingle().then(function (r) {
-      if (r.error) fail(r.error);
-      var d = {}, k, shared = (r.data && r.data.data) || {};
-      for (k in DEFAULTS) d[k] = DEFAULTS[k];
-      for (k in shared) d[k] = shared[k];
-      try { var sb = localStorage.getItem(SKEY + '.salesBy'); if (sb) d.salesBy = sb; } catch (e) {}
-      d.name = STORE_NAME;
-      return d;
-    });
+    var b = business() || {}, d = { name: b.name || '', addr: b.addr || '', phone: b.phone || '', salesBy: '' };
+    try { var sb = localStorage.getItem(SKEY + '.salesBy'); if (sb) d.salesBy = sb; } catch (e) {}
+    return Promise.resolve(d);
   }
   function saveSettings(s) {
     try { localStorage.setItem(SKEY + '.salesBy', s.salesBy || ''); } catch (e) {}
-    return db.from('jb_settings').update({ data: { addr: s.addr, phone: s.phone } }).eq('id', 1).then(function (r) { if (r.error) fail(r.error); });
+    return Promise.resolve();
   }
+  function updateBusiness(fields) {
+    return db.from('invoiceit_businesses').update(fields).eq('id', business().id).select('id,name,addr,phone').single().then(function (r) {
+      if (r.error) fail(r.error);
+      me.business = r.data; return r.data;
+    });
+  }
+  function team() {
+    return Promise.all([
+      db.from('invoiceit_members').select('user_id,email,role,created_at').order('created_at'),
+      isOwner() ? db.from('invoiceit_join_codes').select('code,role,expires_at').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] })
+    ]).then(function (r) {
+      if (r[0].error) fail(r[0].error); if (r[1].error) fail(r[1].error);
+      return { members: r[0].data, codes: r[1].data, myId: user.id };
+    });
+  }
+  function newJoinCode(role) { return db.rpc('invoiceit_new_join_code', { p_role: role || 'staff' }).then(function (r) { if (r.error) fail(r.error); return r.data; }); }
+  function deleteJoinCode(code) { return db.from('invoiceit_join_codes').delete().eq('code', code).then(function (r) { if (r.error) fail(r.error); }); }
+  function removeMember(uid) { return db.from('invoiceit_members').delete().eq('user_id', uid).then(function (r) { if (r.error) fail(r.error); }); }
 
   function all() {
-    return db.from('jb_invoices').select('id,no,data').order('no', { ascending: false }).then(function (r) {
+    return db.from('invoiceit_invoices').select('id,no,data').order('no', { ascending: false }).then(function (r) {
       if (r.error) fail(r.error);
       return r.data.map(toInv);
     });
   }
   function get(id) {
-    return db.from('jb_invoices').select('id,no,data').eq('id', id).maybeSingle().then(function (r) {
+    return db.from('invoiceit_invoices').select('id,no,data').eq('id', id).maybeSingle().then(function (r) {
       if (r.error) fail(r.error);
       return r.data ? toInv(r.data) : null;
     });
   }
   /* The database gives the invoice its number, so two devices can never hand out the same one. */
   function add(inv) {
-    return db.from('jb_invoices').insert({ data: toData(inv) }).select('id,no,data').single().then(function (r) {
+    var d = toData(inv); if (!d.createdBy) d.createdBy = user && user.email;
+    return db.from('invoiceit_invoices').insert({ data: d }).select('id,no,data').single().then(function (r) {
       if (r.error) fail(r.error);
       return toInv(r.data);
     });
   }
   function update(inv) {
-    return db.from('jb_invoices').update({ data: toData(inv) }).eq('id', inv.id).select('id,no,data').single().then(function (r) {
+    return db.from('invoiceit_invoices').update({ data: toData(inv) }).eq('id', inv.id).select('id,no,data').single().then(function (r) {
       if (r.error) fail(r.error);
       return toInv(r.data);
     });
@@ -153,7 +334,7 @@
     var done = 0;
     return list.reduce(function (p, inv) {
       return p.then(function () {
-        inv.store = inv.store || {}; inv.store.name = STORE_NAME;
+        inv.store = inv.store || {}; inv.store.name = business().name;
         inv.notes = String(inv.notes || '') + (inv.no ? (inv.notes ? '\n' : '') + '(Earlier device no. ' + inv.no + ')' : '');
         return add(inv).then(function () { done++; });
       });
@@ -210,7 +391,7 @@
     if (num(inv.tax) > 0) sum += '<div class="p-sum"><b>VAT (' + esc(inv.tax) + '%):</b><span>' + m(c.tax) + '</span></div>';
     sum += '<div class="p-sum"><b>Total:</b><span>' + m(c.total) + '</span></div>';
     return '<article class="paper"><div class="in-pad">' +
-      '<div class="p-head"><span class="p-name">' + esc(STORE_NAME) + '</span><span class="p-addr">' + esc(inv.store.addr) +
+      '<div class="p-head"><span class="p-name">' + esc(inv.store && inv.store.name) + '</span><span class="p-addr">' + esc(inv.store.addr) +
       '</span><span class="p-mob"><b>Mobile:</b> ' + esc(inv.store.phone) + '</span></div>' +
       '<div class="p-title">Invoice</div>' +
       '<div class="p-meta"><div class="col"><span><b>Invoice No.</b> ' + esc(inv.no) + '</span><b>Customer</b><span style="text-transform:uppercase;overflow-wrap:anywhere">' +
@@ -235,7 +416,7 @@
 
   window.Store = {
     esc: esc, num: num, qty: qty, methodSelect: methodSelect, plain: plain, money: money, today: today, nowStr: nowStr, SYMS: SYMS,
-    STORE_NAME: STORE_NAME,
+    business: business, isOwner: isOwner, billing: billing, pay: pay, fmtDate: fmtDate, daysLeft: daysLeft, updateBusiness: updateBusiness, team: team, newJoinCode: newJoinCode, deleteJoinCode: deleteJoinCode, removeMember: removeMember,
     settings: settings, saveSettings: saveSettings,
     ready: ready, all: all, get: get, add: add, update: update, nextNo: nextNo,
     localInvoices: localInvoices, uploadLocal: uploadLocal, clearLocal: clearLocal,

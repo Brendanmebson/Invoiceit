@@ -147,6 +147,11 @@ label.f textarea{height:auto;padding:12px;line-height:1.5;resize:vertical}
   .topbar .right>*{flex:1}
 }
 
+/* Credit, bottom right */
+.credit{padding:16px 48px 24px;text-align:right;font-size:13px;color:var(--mute)}
+.credit a{color:var(--ink);font-weight:700}
+@media (max-width:760px){.credit{padding:16px}}
+
 /* print: only the invoice */
 @media print{
   body{background:#fff}
@@ -205,3 +210,68 @@ label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
   .seg button{padding:0 6px;font-size:13px;white-space:nowrap}
   .top-btn{padding:0 12px;white-space:nowrap;font-size:13px}
 }
+/* Tabs never break onto two lines; if they don't fit beside the name they get their own row */
+.topbar nav a{white-space:nowrap}
+@media (max-width:760px){
+  .topbar .left{width:100%;gap:0}
+  .topbar nav{flex:1 1 auto;min-width:220px}
+}
+
+/* Brand: app name before sign-in, business name after */
+.brand{gap:10px}
+.brand img{display:block;flex:none}
+.brand .biz{max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brand .by{font-family:'Chivo Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:none;color:#B4B8BE;white-space:nowrap}
+
+/* Sign in / sign up */
+.gate-brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-size:18px;letter-spacing:.02em;text-transform:none}
+.gate-brand img{display:block}
+.gate-card [hidden]{display:none}
+.gate-card #gBizWrap,.gate-card #gCodeWrap{display:flex;flex-direction:column}
+.gate-card #gBizWrap[hidden],.gate-card #gCodeWrap[hidden]{display:none}
+.linkish{align-self:flex-start;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;text-align:left}
+.gate-swap{font-size:14px;color:var(--mute)}
+.gate-or{display:flex;align-items:center;gap:12px;font-family:'Chivo Mono',monospace;font-size:12px;color:var(--mute);text-transform:uppercase}
+.gate-or::before,.gate-or::after{content:"";flex:1;border-top:1px solid #C9CCD1}
+
+/* Business page */
+.biz-page{max-width:760px}
+.biz-page .hint{margin:0;font-size:14px;line-height:1.5;color:var(--mute)}
+.biz-form{display:flex;flex-direction:column;gap:16px}
+.biz-form .btn{align-self:flex-start;min-height:52px}
+.biz-form input[readonly]{background:var(--field)}
+.box .line.member{grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
+.member .who{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere;font-size:15px}
+.member small{color:var(--mute);font-size:12px}
+.member .code{font-family:'Chivo Mono',monospace;font-size:20px;letter-spacing:.1em}
+.member .btn{min-height:40px;padding:0 14px}
+.code-actions{display:flex;flex-wrap:wrap;gap:12px}
+@media (max-width:760px){.brand .by{display:none}.brand .biz{max-width:calc(100vw - 32px)}.biz-form .btn,.code-actions .btn{width:100%}}
+
+/* Invoice form: where the business details come from */
+.from{display:flex;flex-direction:column;gap:4px;padding:14px 16px;background:#fff;border:2px solid var(--ink);font-size:15px;line-height:1.45}
+.from i{color:var(--mute)}
+.from a{align-self:flex-start;margin-top:6px;font-size:14px;font-weight:700}
+.kv .r b.by-email{font-family:inherit;font-weight:700;overflow-wrap:anywhere;text-align:right}
+
+/* Trial banner and pop-ups */
+.trial-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;padding:10px 16px;background:#FFF4E5;border-bottom:2px solid var(--ink);font-size:14px;text-align:center}
+.trial-bar .btn{min-height:36px;padding:0 14px;background:var(--accent);border-color:var(--accent);color:#fff;font-weight:900}
+.gate.modal{background:rgba(17,17,17,.6)}
+.gate-card select{height:44px;padding:0 12px;border:2px solid var(--ink);background:#fff;font-size:16px}
+
+/* Billing on the Business page */
+.plan{display:flex;flex-direction:column;gap:6px;padding:16px;background:#fff;border:2px solid var(--ink);border-top-width:6px}
+.plan b{font-size:18px}
+.plan.warn{border-top-color:var(--accent)}
+.pay-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.pay-row label.f{flex:1 1 220px}
+.pay-row .btn{min-height:44px}
+
+/* Buy me a coffee */
+.coffee{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;margin-right:12px;background:#FFDD00;color:#111!important;border:2px solid var(--ink);font-size:13px;font-weight:900;text-decoration:none;vertical-align:middle;box-shadow:3px 3px 0 var(--ink);transition:transform .15s ease,box-shadow .15s ease}
+.coffee:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.coffee:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+@media (prefers-reduced-motion:reduce){.coffee{transition:none}}
+@media (max-width:760px){.credit .coffee{display:flex;width:max-content;margin:0 0 12px auto}}
+@media print{.coffee{display:none!important}}

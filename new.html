@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>New invoice · JB Enterprise</title>
+<title>New invoice · Invoiceit</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
@@ -11,8 +14,8 @@
 <body>
 <header class="topbar">
   <div class="left">
-    <a class="brand" href="index.html">JB Enterprise</a>
-    <nav><a href="index.html">Invoices</a><a class="on" href="new.html">New invoice</a></nav>
+    <a class="brand" href="invoices.html">Invoiceit</a>
+    <nav><a href="invoices.html">Invoices</a><a class="on" href="new.html">New invoice</a><a href="business.html">Business</a></nav>
   </div>
   <div class="right">
     <button class="top-btn" id="print">Print</button>
@@ -24,9 +27,8 @@
   <section class="formcol">
 
     <div class="sec">
-      <h2><i>01</i>Store and invoice</h2>
-      <label class="f">Shop address<input data-k="store.addr" placeholder="Shop no., plaza, street, area, city"></label>
-      <label class="f">Shop phone numbers<input class="mono" data-k="store.phone" placeholder="0800 000 0000"></label>
+      <h2><i>01</i>Invoice</h2>
+      <div class="from" id="from"></div>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
         <label class="f">Invoice no. (set on save)<input class="mono" data-k="no" readonly tabindex="-1" style="background:var(--field)"></label>
         <label class="f">Date and time<input class="mono" data-k="date"></label>
@@ -87,6 +89,7 @@
   </section>
 </div>
 
+<footer class="credit noprint"><a class="coffee" href="https://buymeacoffee.com/brendanmebson" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a> Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></footer>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
@@ -99,14 +102,26 @@
   }).then(function (r) { start(r[0], r[1], r[2]); })
     .catch(function (err) { toast('Could not load. ' + err.message); });
 
+  function showFrom() {
+    var b = S.business();
+    document.getElementById('from').innerHTML = '<span class="cap">Printed with</span><b>' + S.esc(b.name) + '</b>' +
+      '<span>' + (S.esc(b.addr) || '<i>No address yet</i>') + ' · ' + (S.esc(b.phone) || '<i>No phone yet</i>') + '</span>' +
+      (S.isOwner() ? '<a href="business.html">Change business details</a>' : '');
+  }
+  // Owner filled in the pop-up while this page was open: use the new details.
+  document.addEventListener('invoiceit:business', function (e) {
+    if (!inv) return; inv.store = { name: e.detail.name, addr: e.detail.addr, phone: e.detail.phone }; showFrom(); preview();
+  });
+
   function start(dup, st, no) {
+  showFrom();
   if (dup) {
     inv = JSON.parse(JSON.stringify(dup));
-    delete inv.id; inv.store.name = S.STORE_NAME; inv.no = no; inv.date = S.nowStr(); inv.payments = [];
+    delete inv.id; delete inv.createdBy; inv.store = { name: S.business().name, addr: S.business().addr, phone: S.business().phone }; inv.no = no; inv.date = S.nowStr(); inv.payments = [];
   } else {
     inv = {
       no: no, date: S.nowStr(), cust: '', phone: '', salesBy: st.salesBy,
-      store: { name: S.STORE_NAME, addr: st.addr, phone: st.phone }, currency: 'NGN',
+      store: { name: S.business().name, addr: st.addr, phone: st.phone }, currency: 'NGN',
       items: [{ desc: '', serial: '', qty: '', price: '' }],
       payments: [{ method: '', amount: '', date: S.today(), auto: true }],
       discount: '', delivery: '', tax: '', notes: ''
@@ -204,7 +219,7 @@
     var btn = document.getElementById('save'), btn2 = document.getElementById('save2'); if (btn.disabled) return;
     btn.disabled = btn2.disabled = true; btn.textContent = btn2.textContent = 'Saving…';
     S.add(inv).then(function (saved) {
-      return S.saveSettings({ addr: inv.store.addr, phone: inv.store.phone, salesBy: inv.salesBy }).catch(function () {}).then(function () {
+      return S.saveSettings({ salesBy: inv.salesBy }).catch(function () {}).then(function () {
         location.href = 'invoice.html?id=' + encodeURIComponent(saved.id);
       });
     }).catch(function (err) { btn.disabled = btn2.disabled = false; btn.textContent = btn2.textContent = 'Save invoice'; toast('Not saved. ' + err.message); });
