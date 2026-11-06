@@ -275,3 +275,34 @@ label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
 @media (prefers-reduced-motion:reduce){.coffee{transition:none}}
 @media (max-width:760px){.credit .coffee{display:flex;width:max-content;margin:0 0 12px auto}}
 @media print{.coffee{display:none!important}}
+
+/* ---------- Phone top bar in the app: name, +, ☰ ---------- */
+.menu-btn{display:none}
+.app-menu{display:none}
+.new-btn .plus{font-size:20px;line-height:1;margin-right:8px;font-weight:900}
+@media (max-width:760px){
+  body.has-menu .topbar{flex-wrap:nowrap;position:sticky;top:0;z-index:6}
+  body.has-menu .topbar .left{width:auto;flex:1 1 auto;min-width:0}
+  body.has-menu .topbar .brand{padding:12px 16px;min-width:0}
+  body.has-menu .topbar .brand .biz{max-width:100%}
+  body.has-menu .topbar nav,body.has-menu #signOut,body.has-menu #print{display:none}
+  body.has-menu .topbar .right{width:auto;flex:none;flex-wrap:nowrap}
+  body.has-menu .topbar .right>*{flex:none;min-height:52px}
+  body.has-menu .new-btn{width:52px;padding:0}
+  body.has-menu .new-btn .plus{margin:0;font-size:28px}
+  body.has-menu .new-btn .lbl{display:none}
+  body.has-menu #save{padding:0 14px;font-size:12px}
+  .menu-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:52px;padding:0;border:0;border-left:1px solid #3A3D42;background:var(--ink);cursor:pointer}
+  .menu-btn span{display:block;width:22px;height:3px;background:#fff;transition:transform .2s ease,opacity .2s ease}
+  .topbar.open .menu-btn span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+  .topbar.open .menu-btn span:nth-child(2){opacity:0}
+  .topbar.open .menu-btn span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+  .app-menu:not([hidden]){display:flex;flex-direction:column;position:sticky;top:52px;z-index:5;background:var(--ink);border-top:1px solid #3A3D42;box-shadow:0 12px 24px rgba(0,0,0,.25)}
+  .app-menu a{display:flex;align-items:center;min-height:52px;padding:0 16px;border-bottom:1px solid #2A2C30;color:#fff;font-size:16px;font-weight:700;text-decoration:none}
+  .app-menu a.on{box-shadow:inset 4px 0 0 var(--accent)}
+  .app-menu .who{padding:14px 16px 4px;color:#B4B8BE;font-size:13px;overflow-wrap:anywhere}
+  .app-menu .who b{color:#fff}
+  .menu-out{margin:10px 16px 16px;min-height:48px;border:2px solid #fff;background:transparent;color:#fff;font:inherit;font-size:14px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+}
+@media (max-width:760px) and (prefers-reduced-motion:reduce){.menu-btn span{transition:none}}
+@media print{.app-menu,.menu-btn{display:none!important}}

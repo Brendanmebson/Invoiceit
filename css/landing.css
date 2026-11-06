@@ -12,6 +12,7 @@
 .lp-top{position:sticky;top:0;z-index:5}
 .lp-top .top-btn span{margin-left:8px}
 .lp-top .brand img{border:0}
+.menu-btn{display:none}
 .cta-band .cta{margin-top:8px}
 .cta-band .cta .btn{margin-top:0}
 
@@ -173,7 +174,21 @@
 /* phone */
 @media (max-width:760px){
   .announce{font-size:12px}
-  .lp-top{position:static}
+  /* Hamburger menu on phones */
+  .lp-top{position:sticky;flex-wrap:wrap}
+  .lp-top .left{width:100%;flex-wrap:wrap;justify-content:space-between;align-items:stretch;gap:0}
+  .lp-top .brand{padding:12px 16px}
+  .menu-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:56px;min-height:52px;padding:0;border:0;border-left:1px solid #3A3D42;background:var(--ink);cursor:pointer}
+  .menu-btn span{display:block;width:22px;height:3px;background:#fff;transition:transform .2s ease,opacity .2s ease}
+  .lp-top.open .menu-btn span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+  .lp-top.open .menu-btn span:nth-child(2){opacity:0}
+  .lp-top.open .menu-btn span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+  .lp-top nav,.lp-top .right{display:none}
+  .lp-top.open nav{display:flex;flex-direction:column;flex:1 1 100%;min-width:0;gap:0;border-top:1px solid #3A3D42}
+  .lp-top.open nav a{flex:none;justify-content:flex-start;min-height:52px;padding:0 16px;border-bottom:1px solid #2A2C30;color:#fff;font-size:16px;box-shadow:none}
+  .lp-top.open .right{display:flex;width:100%}
+  .lp-top.open .right>*{flex:1;min-height:56px;justify-content:center}
+  @media (prefers-reduced-motion:reduce){.menu-btn span{transition:none}}
   .hero{padding:28px 16px 0;background-size:auto,auto,40px 40px,40px 40px}
   .hero .lede{font-size:16px}
   .cta{flex-direction:column;align-self:stretch}

@@ -69,6 +69,7 @@
     });
     addSignOut();
     if (!isOwner()) { [].forEach.call(document.querySelectorAll('.topbar nav a[href="business.html"]'), function (a) { a.remove(); }); }
+    appMenu();
     trialBanner();
     askForDetails();
     return me;
@@ -246,6 +247,34 @@
     draw(mode, msg);
     return new Promise(function () {}); // page waits until reload after sign-in
   }
+  /* Phones: page links and Sign out live behind a hamburger; the top bar keeps the name, + and ☰. */
+  function appMenu() {
+    var top = document.querySelector('.topbar'), right = top && top.querySelector('.right');
+    if (!right || document.getElementById('appMenu')) return;
+    document.body.classList.add('has-menu');
+    var btn = document.createElement('button');
+    btn.className = 'menu-btn'; btn.type = 'button';
+    btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'appMenu'); btn.setAttribute('aria-label', 'Open menu');
+    btn.innerHTML = '<span></span><span></span><span></span>';
+    right.appendChild(btn);
+    var panel = document.createElement('div');
+    panel.className = 'app-menu'; panel.id = 'appMenu'; panel.hidden = true;
+    panel.innerHTML = [].map.call(top.querySelectorAll('nav a'), function (a) {
+      return '<a href="' + a.getAttribute('href') + '"' + (a.classList.contains('on') ? ' class="on" aria-current="page"' : '') + '>' + esc(a.textContent) + '</a>';
+    }).join('') + '<div class="who">Signed in as <b>' + esc(user.email) + '</b>' + (isOwner() ? ' · Owner' : ' · Staff') + '</div>' +
+      '<button type="button" class="menu-out">Sign out</button>';
+    top.parentNode.insertBefore(panel, top.nextSibling);
+    function set(open) {
+      panel.hidden = !open; top.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+    btn.onclick = function () { set(panel.hidden); };
+    panel.querySelector('.menu-out').onclick = function () { db.auth.signOut().then(function () { location.href = 'index.html'; }); };
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { set(false); btn.focus(); } });
+    window.matchMedia('(min-width:761px)').addEventListener('change', function (m) { if (m.matches) set(false); });
+  }
+
   function addSignOut() {
     var right = document.querySelector('.topbar .right'); if (!right || document.getElementById('signOut')) return;
     var b = document.createElement('button');
