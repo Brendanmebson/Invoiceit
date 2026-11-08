@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoiceit · Developers</title>
+<meta name="description" content="The Invoiceit API: create invoices from your own systems, with API keys, monthly tokens and safe retries.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/developers.css">
+</head>
+<body class="landing">
+
+<header class="topbar lp-top dev-top">
+  <div class="left"><a class="brand" href="index.html"><img src="favicon.svg" alt="" width="26" height="26">Invoiceit</a></div>
+  <div class="right"><a class="top-link" href="index.html">Home</a><a class="top-link" href="invoices.html">Login</a></div>
+</header>
+<nav class="dev-tabs" aria-label="Developers">
+  <a href="developers.html" aria-current="page">Overview</a>
+  <a href="docs.html">Documentation</a>
+  <a href="integrations.html">Integrations</a>
+</nav>
+
+<div class="dev-head">
+  <div class="dev-head-in">
+    <span class="chip"><span class="dot" aria-hidden="true"></span>Developers · Overview</span>
+    <h1>Build on the <span class="hl">Invoiceit</span> API</h1>
+    <p>Create invoices from your own store, till or scripts. How keys, tokens and retries work.</p>
+  </div>
+</div>
+
+<main class="dev">
+  <div class="dev-main">
+    <section class="dev-sec" id="about">
+      <h2>The Invoiceit API <span class="tag soon">In development</span></h2>
+      <p>The API lets your own systems write invoices into Invoiceit: an online store, a point-of-sale till, a booking form or a spreadsheet script. Invoices created through the API land in the same list as the ones your staff write, with the same numbering, totals and balances.</p>
+      <p>It's a REST API over HTTPS that sends and receives JSON. Every request is signed with an API key that belongs to one business, and it can only reach that business's invoices.</p>
+      <p class="note">The API isn't open yet. This page describes how it will work so you can plan an integration. Details may change before launch.</p>
+    </section>
+
+    <section class="dev-sec" id="keys">
+      <h2>API keys</h2>
+      <p>Only the business owner can create and revoke keys. Staff accounts can't see them.</p>
+      <ul>
+        <li><b>Shown once.</b> The full key is shown a single time, when you create it. Invoiceit stores only a hash, so a lost key can't be recovered; revoke it and make a new one.</li>
+        <li><b>Format.</b> Keys look like <code>inv_live_</code> followed by 32 characters. In your account a key is listed by its first 8 characters, e.g. <code>inv_live_3f9a12c0…</code>, with the date it was last used.</li>
+        <li><b>Named.</b> Give each key a name, such as "Online store", so you know which system uses it.</li>
+        <li><b>Up to 10 active keys</b> per business. Revoking a key stops it working straight away.</li>
+        <li><b>Tied to your subscription.</b> If your trial or paid period ends, your keys stop working until you pay. They don't need to be recreated.</li>
+      </ul>
+      <p>Keep keys on your server. Never put one in a web page, a mobile app or a public repository.</p>
+    </section>
+
+    <section class="dev-sec" id="tokens">
+      <h2>Tokens and plans</h2>
+      <p>The API is metered in tokens. <b>One token is one invoice created through the API.</b> Reading data, such as checking how many tokens you have left with <code>GET /v1/usage</code>, doesn't use tokens.</p>
+      <div class="table-wrap">
+        <table class="dev-table">
+          <thead><tr><th>API plan</th><th>Tokens per month</th></tr></thead>
+          <tbody>
+            <tr><td>Free</td><td>20</td></tr>
+            <tr><td>Starter</td><td>200</td></tr>
+            <tr><td>Business</td><td>1,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><b>Every business starts on Free.</b> Paid API plan prices will be announced at launch.</li>
+        <li><b>Monthly allowance.</b> Your tokens refill one month after the last refill, and also whenever you renew your Invoiceit subscription. Unused tokens don't carry over.</li>
+        <li><b>Failed requests are free.</b> If an invoice can't be saved, the token is given back.</li>
+        <li><b>Out of tokens.</b> Requests to create invoices are refused until your allowance refills. Your app and existing invoices keep working as normal.</li>
+      </ul>
+    </section>
+
+    <section class="dev-sec" id="retries">
+      <h2>Safe retries</h2>
+      <p>Networks fail, and a retried request shouldn't create the same invoice twice. Send an <code>Idempotency-Key</code> header with any unique value (up to 255 characters) when you create an invoice.</p>
+      <ul>
+        <li>Repeating a request with the same key and the same body returns the original response, and no extra token is used.</li>
+        <li>Reusing a key with a different body is refused, so a mistake can't overwrite an earlier invoice.</li>
+        <li>Keys are remembered for 24 hours.</li>
+      </ul>
+<pre><code>Idempotency-Key: order-10482</code></pre>
+    </section>
+
+    <section class="dev-sec" id="access">
+      <h2>Get early access</h2>
+      <p>If you'd like to build on the API, email <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a> with your business name and what you want to connect. Early requests shape which endpoints come first.</p>
+    </section>
+
+    <section class="dev-sec" id="next">
+      <h2>Read next</h2>
+      <div class="dev-cards">
+        <a class="dev-card" href="docs.html"><b>Documentation</b><span>Invoice numbering, how totals and balances are worked out, regions and currencies, and the shape of an invoice.</span><span class="go">Read the docs →</span></a>
+        <a class="dev-card" href="integrations.html"><b>Integrations</b><span>Paystack, WhatsApp, printing and PDF, and invoice links: what Invoiceit connects to today.</span><span class="go">See integrations →</span></a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="lp-foot">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a class="foot-logo" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">Invoiceit</a>
+      <p>Invoices that add up. Write them in under a minute, track part payments, and always know who still owes you.</p>
+      <a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h3>Product</h3><a href="index.html#how">How it works</a><a href="index.html#features">Features</a><a href="index.html#balances">Balances</a><a href="index.html#pricing">Pricing</a><a href="index.html#faq">FAQ</a></div>
+      <div><h3>Developers</h3><a href="developers.html">Overview</a><a href="docs.html">Documentation</a><a href="integrations.html">Integrations</a></div>
+      <div><h3>Account</h3><a href="invoices.html">Login</a><a href="invoices.html#signup">Create Free Account</a><a href="mailto:brendanmebson@gmail.com">Contact</a></div>
+    </nav>
+  </div>
+  <div class="foot-pay"><img src="img/paystack-secured.png" width="1200" height="218" alt="Payments secured by Paystack. Visa, Mastercard, Verve, American Express and Apple Pay accepted." loading="lazy"></div>
+  <div class="foot-bottom"><span>© 2026 Invoiceit</span><span>Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></span></div>
+</footer>
+
+</body>
+</html>

@@ -53,7 +53,7 @@
         // New account: finish setup with what they typed at sign-up, if anything.
         var md = user.user_metadata || {};
         if (!md.business_name && !md.join_code) return gate('setup');
-        return db.rpc('invoiceit_setup', { p_business_name: md.business_name || null, p_join_code: md.join_code || null }).then(function (r3) {
+        return db.rpc('invoiceit_setup', { p_business_name: md.business_name || null, p_join_code: md.join_code || null, p_region: md.region || region() }).then(function (r3) {
           if (r3.error || !r3.data) return gate('setup', r3.error && r3.error.message);
           return enter(r3.data);
         });
@@ -68,15 +68,27 @@
       b.title = me.business.name;
     });
     addSignOut();
-    if (!isOwner()) { [].forEach.call(document.querySelectorAll('.topbar nav a[href="business.html"]'), function (a) { a.remove(); }); }
+    if (!isOwner()) { [].forEach.call(document.querySelectorAll('.topbar nav a[href="business.html"], .topbar nav a[href="dashboard.html"]'), function (a) { a.remove(); }); }
     appMenu();
     trialBanner();
     askForDetails();
     return me;
   }
 
-  /* ---------- Billing: 14-day trial, then ₦20,000 a month via Paystack ---------- */
-  var PRICE_KOBO = 2000000;
+  /* ---------- Billing: 14-day trial, then a monthly price set by the business's region, via Paystack ---------- */
+  function region() { return window.InvoiceitRegion.detect(false); }
+  /* The business's plan from the server ({ currency, amount } in kobo/cents). */
+  function plan() {
+    var b = billing();
+    return (b && b.price) || window.InvoiceitRegion.plan((me && me.business && me.business.region) || 'ng');
+  }
+  function priceText(months) { return window.InvoiceitRegion.priceText(plan(), months); }
+  /* <option>s for the "Pay for" dropdown: 1, 3, 6 and 12 months. */
+  function monthOptions() {
+    return [1, 3, 6, 12].map(function (n) { return '<option value="' + n + '">' + n + ' month' + (n > 1 ? 's' : '') + ' · ' + priceText(n) + '</option>'; }).join('');
+  }
+  /* Default currency for this business's invoices and totals. */
+  function currency() { return (me && me.business && me.business.currency) || 'NGN'; }
   function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
   function daysLeft(iso) { return Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 86400000)); }
   function billing() { return (me && me.billing) || null; }
@@ -105,7 +117,7 @@
     var el = document.createElement('div');
     el.className = 'trial-bar';
     el.innerHTML = '<span>' + (b.on_trial ? 'Free trial: <b>' + days + ' day' + (days === 1 ? '' : 's') + ' left</b> (ends ' + fmtDate(b.access_until) + ').'
-      : 'Your subscription ends in <b>' + days + ' day' + (days === 1 ? '' : 's') + '</b>.') + ' ₦20,000 a month after that.</span>' +
+      : 'Your subscription ends in <b>' + days + ' day' + (days === 1 ? '' : 's') + '</b>.') + ' ' + priceText(1) + ' a month after that.</span>' +
       '<button type="button" class="btn" id="trialPay">Pay now</button>';
     document.body.insertBefore(el, document.body.firstChild);
     el.querySelector('#trialPay').onclick = function () { this.disabled = true; this.textContent = 'Opening Paystack…'; var t = this; pay(1).catch(function (e) { t.disabled = false; t.textContent = 'Pay now'; alert(e.message); }); };
@@ -119,9 +131,9 @@
     el.innerHTML = '<div class="gate-card"><a class="gate-brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">' + APP + '</a>' +
       '<h1>' + (trial ? 'Your free trial has ended' : 'Your subscription has ended') + '</h1>' +
       '<p><b>' + esc(me.business.name) + '</b> no longer has access to its invoices. ' +
-      (owner ? 'Subscribe for <b>₦20,000 a month</b> to pick up where you left off.' : 'Ask your business owner to renew the subscription.') + '</p>' +
+      (owner ? 'Subscribe for <b>' + priceText(1) + ' a month</b> to pick up where you left off.' : 'Ask your business owner to renew the subscription.') + '</p>' +
       '<p class="gate-note">If it stays unpaid, all of this business\'s invoices and team will be permanently deleted on <b>' + fmtDate(b.delete_at) + '</b>.</p>' +
-      (owner ? '<label class="f">Pay for<select id="lkMonths"><option value="1">1 month · ₦20,000</option><option value="3">3 months · ₦60,000</option><option value="6">6 months · ₦120,000</option><option value="12">12 months · ₦240,000</option></select></label>' +
+      (owner ? '<label class="f">Pay for<select id="lkMonths">' + monthOptions() + '</select></label>' +
         '<button class="btn primary" type="button" id="lkPay">Pay with Paystack</button>' : '') +
       '<button class="btn ghost" type="button" id="lkOut">Sign out</button></div>';
     if (owner) el.querySelector('#lkPay').onclick = function () {
@@ -175,7 +187,7 @@
       var html;
       if (m === 'setup') {
         html = '<h1>Set up your business</h1><p>Signed in as <b>' + esc(user.email) + '</b>. Name your business, or enter a join code if your business already uses ' + APP + '.</p>' +
-          field('gBiz', 'Business name', 'text', 'maxlength="80" placeholder="e.g. Adebayo Gadgets" autocomplete="organization"') +
+          field('gBiz', 'Business name', 'text', 'maxlength="80" placeholder="e.g. Adebayo Ventures" autocomplete="organization"') +
           '<div class="gate-or"><span>or</span></div>' +
           field('gCode', 'Join code from your owner', 'text', 'maxlength="12" placeholder="e.g. 7F3K9Q2A" autocapitalize="characters"') +
           (note ? '<p class="gate-note">' + esc(note) + '</p>' : '') +
@@ -185,7 +197,7 @@
         html = '<h1>Create your account</h1>' +
           field('gEmail', 'Email', 'email', 'autocomplete="email" required') +
           field('gPass', 'Password', 'password', 'minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"') +
-          '<div id="gBizWrap">' + field('gBiz', 'Business name', 'text', 'maxlength="80" placeholder="e.g. Adebayo Gadgets" autocomplete="organization"') + '</div>' +
+          '<div id="gBizWrap">' + field('gBiz', 'Business name', 'text', 'maxlength="80" placeholder="e.g. Adebayo Ventures" autocomplete="organization"') + '</div>' +
           '<div id="gCodeWrap" hidden>' + field('gCode', 'Join code from your owner', 'text', 'maxlength="12" placeholder="e.g. 7F3K9Q2A" autocapitalize="characters"') + '</div>' +
           '<button class="linkish" type="button" id="gJoin">Joining a business that already uses ' + APP + '? Use a join code</button>' +
           (note ? '<p class="gate-note">' + esc(note) + '</p>' : '') +
@@ -222,8 +234,8 @@
         }
         go.disabled = true; go.textContent = 'Please wait…';
         var call;
-        if (m === 'setup') call = db.rpc('invoiceit_setup', { p_business_name: biz || null, p_join_code: code || null });
-        else if (m === 'signup') call = db.auth.signUp({ email: email, password: pass, options: { data: { business_name: biz || null, join_code: code || null } } });
+        if (m === 'setup') call = db.rpc('invoiceit_setup', { p_business_name: biz || null, p_join_code: code || null, p_region: region() });
+        else if (m === 'signup') call = db.auth.signUp({ email: email, password: pass, options: { data: { business_name: biz || null, join_code: code || null, region: region() } } });
         else call = db.auth.signInWithPassword({ email: email, password: pass });
         call.then(function (r) {
           if (r.error) {
@@ -235,7 +247,7 @@
           if (m === 'signup' && !r.data.session) { draw('signin', 'Account created. Open the confirmation email, then sign in.'); return; }
           if (m === 'signup') {
             // Signed in straight away: create or join the business now.
-            return db.rpc('invoiceit_setup', { p_business_name: biz || null, p_join_code: code || null }).then(function (r2) {
+            return db.rpc('invoiceit_setup', { p_business_name: biz || null, p_join_code: code || null, p_region: region() }).then(function (r2) {
               if (r2.error) { user = r.data.user; draw('setup', r2.error.message); return; }
               location.hash = ''; location.reload();
             });
@@ -445,7 +457,7 @@
 
   window.Store = {
     esc: esc, num: num, qty: qty, methodSelect: methodSelect, plain: plain, money: money, today: today, nowStr: nowStr, SYMS: SYMS,
-    business: business, isOwner: isOwner, billing: billing, pay: pay, fmtDate: fmtDate, daysLeft: daysLeft, updateBusiness: updateBusiness, team: team, newJoinCode: newJoinCode, deleteJoinCode: deleteJoinCode, removeMember: removeMember,
+    business: business, isOwner: isOwner, billing: billing, pay: pay, priceText: priceText, monthOptions: monthOptions, currency: currency, fmtDate: fmtDate, daysLeft: daysLeft, updateBusiness: updateBusiness, team: team, newJoinCode: newJoinCode, deleteJoinCode: deleteJoinCode, removeMember: removeMember,
     settings: settings, saveSettings: saveSettings,
     ready: ready, all: all, get: get, add: add, update: update, nextNo: nextNo,
     localInvoices: localInvoices, uploadLocal: uploadLocal, clearLocal: clearLocal,

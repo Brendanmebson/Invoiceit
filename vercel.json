@@ -1,0 +1,6 @@
+{
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/:region(ng|us|uk|eu|intl)", "destination": "/index.html" }
+  ]
+}

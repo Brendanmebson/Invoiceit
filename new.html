@@ -15,7 +15,7 @@
 <header class="topbar">
   <div class="left">
     <a class="brand" href="invoices.html">Invoiceit</a>
-    <nav><a href="invoices.html">Invoices</a><a class="on" href="new.html">New invoice</a><a href="business.html">Business</a></nav>
+    <nav><a href="dashboard.html">Dashboard</a><a href="invoices.html">Invoices</a><a class="on" href="new.html">New invoice</a><a href="business.html">Business</a></nav>
   </div>
   <div class="right">
     <button class="top-btn" id="print">Print</button>
@@ -93,6 +93,7 @@
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
+<script src="js/region.js"></script>
 <script src="js/store.js"></script>
 <script>
 (function () {
@@ -121,7 +122,7 @@
   } else {
     inv = {
       no: no, date: S.nowStr(), cust: '', phone: '', salesBy: st.salesBy,
-      store: { name: S.business().name, addr: st.addr, phone: st.phone }, currency: 'NGN',
+      store: { name: S.business().name, addr: st.addr, phone: st.phone }, currency: S.currency(),
       items: [{ desc: '', serial: '', qty: '', price: '' }],
       payments: [{ method: '', amount: '', date: S.today(), auto: true }],
       discount: '', delivery: '', tax: '', notes: ''
@@ -153,8 +154,8 @@
   function renderItems() {
     document.getElementById('items').innerHTML = inv.items.map(function (it, i) {
       return '<div class="line">' +
-        '<label class="f span2">Product<input data-list="items" data-i="' + i + '" data-f="desc" placeholder="e.g. Phone 128GB new" value="' + S.esc(it.desc) + '"></label>' +
-        '<label class="f span2">IMEI / serial<input class="mono" data-list="items" data-i="' + i + '" data-f="serial" placeholder="Optional" value="' + S.esc(it.serial) + '"></label>' +
+        '<label class="f span2">Product<input data-list="items" data-i="' + i + '" data-f="desc" placeholder="e.g. Office chair" value="' + S.esc(it.desc) + '"></label>' +
+        '<label class="f span2">Serial / note<input class="mono" data-list="items" data-i="' + i + '" data-f="serial" placeholder="Optional" value="' + S.esc(it.serial) + '"></label>' +
         '<label class="f">Qty<input class="mono" inputmode="decimal" data-list="items" data-i="' + i + '" data-f="qty" placeholder="1" value="' + S.esc(it.qty) + '"></label>' +
         '<label class="f">Unit price<input class="mono" inputmode="decimal" data-list="items" data-i="' + i + '" data-f="price" placeholder="0" value="' + S.esc(it.price) + '"></label>' +
         '<div class="amt"><span data-amt="' + i + '">' + S.money(S.qty(it) * S.num(it.price), inv.currency) + '</span>' +

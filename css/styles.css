@@ -9,7 +9,7 @@ input:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px soli
 /* top bar */
 .topbar{display:flex;flex-wrap:wrap;align-items:stretch;justify-content:space-between;background:var(--ink);color:#fff}
 .topbar .left{display:flex;flex-wrap:wrap;align-items:stretch;gap:16px}
-.brand{display:flex;align-items:center;padding:14px 28px;font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-decoration:none}
+.brand{display:flex;align-items:center;padding:14px 28px 14px 56px;font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-decoration:none}
 .topbar nav{display:flex;align-items:stretch;gap:4px}
 .topbar nav a{display:flex;align-items:center;min-height:52px;padding:0 16px;color:#B4B8BE;font-size:14px;font-weight:700;text-decoration:none}
 .topbar nav a.on{color:#fff;box-shadow:inset 0 -4px 0 var(--accent)}
@@ -124,7 +124,7 @@ label.f textarea{height:auto;padding:12px;line-height:1.5;resize:vertical}
 
 /* mobile */
 @media (max-width:760px){
-  .brand{padding:14px 16px;font-size:18px}
+  .brand{padding:14px 16px 14px 22px;font-size:18px}
   .topbar nav a{padding:0 12px}
   .page{padding:24px 16px 40px;gap:20px}
   .page h1{font-size:36px}
@@ -283,7 +283,7 @@ label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
 @media (max-width:760px){
   body.has-menu .topbar{flex-wrap:nowrap;position:sticky;top:0;z-index:6}
   body.has-menu .topbar .left{width:auto;flex:1 1 auto;min-width:0}
-  body.has-menu .topbar .brand{padding:12px 16px;min-width:0}
+  body.has-menu .topbar .brand{padding:12px 16px 12px 22px;min-width:0}
   body.has-menu .topbar .brand .biz{max-width:100%}
   body.has-menu .topbar nav,body.has-menu #signOut,body.has-menu #print{display:none}
   body.has-menu .topbar .right{width:auto;flex:none;flex-wrap:nowrap}
@@ -306,3 +306,40 @@ label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
 }
 @media (max-width:760px) and (prefers-reduced-motion:reduce){.menu-btn span{transition:none}}
 @media print{.app-menu,.menu-btn{display:none!important}}
+
+/* owner dashboard */
+.dash-page .hint{margin:0;font-size:14px;line-height:1.5;color:var(--mute)}
+.dash-page .stat small{font-family:'Chivo Mono',monospace;font-size:12px;color:var(--mute)}
+.dash-page .stat small.up{color:#1F6B2E}
+.dash-page .stat small.down{color:var(--accent-ink)}
+.dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 40px}
+.dash-wide{grid-column:1/-1}
+.chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;padding:16px;background:#fff;border:2px solid var(--ink)}
+.chart .col{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;text-align:center}
+.chart .val{font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart .track{height:180px;display:flex;align-items:flex-end;background:var(--field)}
+.chart .fill{position:relative;width:100%;display:flex;align-items:flex-end;background:#fff;border:2px solid var(--ink);border-bottom:0;box-sizing:border-box}
+.chart .fill[style*="height:0%"]{border:0}
+.chart .paid{width:100%;background:var(--ink)}
+.chart .lbl{font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;color:var(--mute)}
+.chart .now .lbl{color:var(--accent-ink)}
+.box .line.rank{grid-template-columns:minmax(0,1fr) auto;align-items:center;row-gap:8px}
+.box .line.rank:last-child{border-bottom:0}
+.box .line.link{color:var(--ink);text-decoration:none}
+.box .line.link:hover{background:var(--field)}
+.box a.line.rank{grid-template-columns:minmax(0,1fr) auto auto}
+.rank .who{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere;font-size:15px;font-weight:700}
+.rank .who small{color:var(--mute);font-size:12px;font-weight:400}
+.rank .amt-r{font-family:'Chivo Mono',monospace;font-size:15px;font-weight:700;text-align:right;white-space:nowrap}
+.rank .amt-r.owed{color:var(--accent-ink)}
+.rank .bar{grid-column:1/-1;height:6px;background:var(--field)}
+.rank .bar span{display:block;height:100%;background:var(--ink)}
+@media (max-width:760px){
+  .dash-grid{grid-template-columns:minmax(0,1fr);gap:20px}
+  .chart{gap:6px;padding:12px 10px}
+  .chart .track{height:140px}
+  .chart .val{font-size:10px}
+  .dash-page .seg{width:100%}
+  .dash-page .seg button{flex:1 1 auto;padding:0 10px}
+}
+.stats-note{grid-column:1/-1;margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--mute)}

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoiceit · Documentation</title>
+<meta name="description" content="How Invoiceit works: accounts and roles, join codes, invoice numbers, how totals and balances are worked out, regions, and the billing timeline.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/developers.css">
+</head>
+<body class="landing">
+
+<header class="topbar lp-top dev-top">
+  <div class="left"><a class="brand" href="index.html"><img src="favicon.svg" alt="" width="26" height="26">Invoiceit</a></div>
+  <div class="right"><a class="top-link" href="index.html">Home</a><a class="top-link" href="invoices.html">Login</a></div>
+</header>
+<nav class="dev-tabs" aria-label="Developers">
+  <a href="developers.html">Overview</a>
+  <a href="docs.html" aria-current="page">Documentation</a>
+  <a href="integrations.html">Integrations</a>
+</nav>
+
+<div class="dev-head">
+  <div class="dev-head-in">
+    <span class="chip"><span class="dot" aria-hidden="true"></span>Developers · Documentation</span>
+    <h1>Invoiceit <span class="hl">documentation</span></h1>
+    <p>The rules Invoiceit follows: who can do what, how invoices are numbered, how every total is worked out, and what happens when a subscription ends.</p>
+  </div>
+</div>
+
+<main class="dev">
+  <div class="dev-cols">
+    <nav class="dev-toc" aria-label="On this page">
+      <b>On this page</b>
+      <a href="#accounts">Accounts and roles</a>
+      <a href="#join-codes">Join codes</a>
+      <a href="#invoices">Invoices</a>
+      <a href="#totals">How totals work</a>
+      <a href="#payments">Payments</a>
+      <a href="#regions">Regions and currencies</a>
+      <a href="#billing">Trial and billing</a>
+      <a href="#data">Invoice data</a>
+      <a href="#api">API status</a>
+    </nav>
+
+    <div class="dev-main">
+
+      <section class="dev-sec" id="accounts">
+        <h2>Accounts and roles</h2>
+        <p>Someone creates an account with an email, a password and a business name. That person becomes the business's first <b>owner</b>. Everyone else joins an existing business with a join code from an owner.</p>
+        <p>Each account belongs to exactly one business. A business can have several owners and any number of staff.</p>
+        <div class="table-wrap">
+          <table class="dev-table">
+            <thead><tr><th>Role</th><th>Can do</th></tr></thead>
+            <tbody>
+              <tr><td>Owner</td><td>Everything staff can do, plus: open the Dashboard and Business pages, edit the business name, address and phone, make and cancel join codes, remove people from the team, and pay for the subscription.</td></tr>
+              <tr><td>Staff</td><td>Write invoices, view the business's invoices, record payments and share or print invoices. Staff never see or change business details or billing.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>On an owner's first sign-in, Invoiceit asks for the business address and phone number once. They print at the top of every invoice, so staff never have to type them.</p>
+      </section>
+
+      <section class="dev-sec" id="join-codes">
+        <h2>Join codes</h2>
+        <p>Email confirmation is off, so an email address alone doesn't prove someone works for a business. Instead, an owner makes a join code on the Business page and gives it to the new person, who enters it when they sign up.</p>
+        <ul>
+          <li>A code is <b>8 characters</b>, letters and numbers. Case doesn't matter when it's typed in.</li>
+          <li>Each code works <b>once</b>. It's deleted as soon as someone joins with it.</li>
+          <li>Codes <b>expire after 7 days</b> if nobody uses them. Owners can also cancel a code before then.</li>
+          <li>An owner chooses the role when making the code: <b>New staff code</b> or <b>New owner code</b>.</li>
+        </ul>
+      </section>
+
+      <section class="dev-sec" id="invoices">
+        <h2>Invoices</h2>
+        <h3>Numbering</h3>
+        <p>Invoice numbers are five digits (<code>00001</code>, <code>00002</code>, …) and count up separately for each business. The database gives an invoice its number at the moment it's saved, so two people saving on two devices at the same time never get the same number. The number shown while writing an invoice is a preview, and it can change if someone else saves first.</p>
+        <p>Once saved, an invoice's number never changes.</p>
+        <h3>What an invoice holds</h3>
+        <ul>
+          <li><b>Customer</b> name and mobile number, the date and time, and who made the sale.</li>
+          <li><b>Items:</b> a description, an optional serial number, a quantity and a unit price for each line.</li>
+          <li><b>Discount, delivery and VAT</b>, all optional.</li>
+          <li><b>Payments</b> received so far, and notes.</li>
+          <li>A copy of the <b>business name, address and phone</b> as they were when the invoice was written. Changing business details later doesn't change invoices that already exist.</li>
+        </ul>
+        <h3>Changing an invoice</h3>
+        <p>After an invoice is saved, you can add payments to it until it's fully paid. To bill a customer again for the same items, use <b>Duplicate invoice</b>: it copies the customer and items into a new invoice with a new number and no payments.</p>
+      </section>
+
+      <section class="dev-sec" id="totals">
+        <h2>How totals work</h2>
+        <p>Every figure on an invoice is worked out the same way, in this order:</p>
+<pre><code>Subtotal  = sum of (quantity × unit price) for each item
+Discount  = the discount, but never more than the subtotal
+VAT       = (Subtotal − Discount) × VAT % ÷ 100
+Total     = Subtotal − Discount + Delivery + VAT
+Paid      = sum of all payments
+Balance   = Total − Paid   (never below 0)</code></pre>
+        <ul>
+          <li>A blank quantity counts as <b>1</b>.</li>
+          <li>VAT is charged on the discounted subtotal. Delivery is added after and isn't taxed.</li>
+          <li>Total, paid and balance are rounded to 2 decimal places.</li>
+        </ul>
+        <h3>Status</h3>
+        <div class="table-wrap">
+          <table class="dev-table">
+            <thead><tr><th>Status</th><th>When</th></tr></thead>
+            <tbody>
+              <tr><td>PAID</td><td>The total is above 0 and the balance is 0.</td></tr>
+              <tr><td>PART-PAID</td><td>Some money has been paid, but there's a balance left.</td></tr>
+              <tr><td>UNPAID</td><td>Nothing has been paid yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="dev-sec" id="payments">
+        <h2>Payments</h2>
+        <p>An invoice can have any number of payments, so a customer can pay in parts. Each payment has an amount, a date and a method: <b>Cash</b>, <b>Bank Transfer</b> or <b>POS</b>.</p>
+        <ul>
+          <li>When writing a new invoice, the first payment follows the total until you type in it, which covers the usual case of a customer paying in full.</li>
+          <li>Payments can't add up to more than the total. A new invoice with overpayments won't save, and a later payment can't be more than the balance left.</li>
+          <li>Before a later payment is saved, Invoiceit re-reads the invoice, so a payment recorded on another device a moment earlier isn't lost or counted twice.</li>
+        </ul>
+        <p>Recording a payment only updates the invoice. Invoiceit doesn't take or move your customers' money.</p>
+      </section>
+
+      <section class="dev-sec" id="regions">
+        <h2>Regions and currencies</h2>
+        <p>Each business has a region. It's picked once, at sign-up, from the device's time zone (Invoiceit doesn't look up IP addresses), and after that only the server can change it. The region sets two things: the default currency for new invoices, and the subscription price.</p>
+        <div class="table-wrap">
+          <table class="dev-table">
+            <thead><tr><th>Region</th><th>Default invoice currency</th><th>Subscription</th></tr></thead>
+            <tbody>
+              <tr><td>Nigeria</td><td>Naira (₦)</td><td>₦20,000 a month</td></tr>
+              <tr><td>United States</td><td>US dollar ($)</td><td>$15 a month</td></tr>
+              <tr><td>United Kingdom</td><td>Pound (£)</td><td>$15 a month</td></tr>
+              <tr><td>Euro countries</td><td>Euro (€)</td><td>$15 a month</td></tr>
+              <tr><td>Everywhere else</td><td>US dollar ($)</td><td>$15 a month</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The default is only a starting point. Any invoice can be switched to ₦, $, £ or € while it's being written. The Dashboard shows totals in the business's default currency.</p>
+      </section>
+
+      <section class="dev-sec" id="billing">
+        <h2>Trial and billing</h2>
+        <ol>
+          <li><b>Days 0 to 14: free trial.</b> Full access, no card needed. An email address that has already had a trial doesn't get a second one.</li>
+          <li><b>Paying.</b> An owner can pay at any time, for 1, 3, 6 or 12 months. Each month is 30 days, added after the trial ends or on top of time already paid for, so paying early never loses days.</li>
+          <li><b>Access ends.</b> When the trial or paid time runs out, the business is locked: the database stops returning its invoices, team and codes. Owners see a pay button when they sign in; staff are asked to contact their owner.</li>
+          <li><b>14 days after access ends without payment</b> (day 28 for a business that never paid), the business is deleted along with all of its invoices, team and join codes. This can't be undone.</li>
+        </ol>
+        <p class="note">There's no scheduled job for deletion. The clean-up runs whenever anyone signs in to Invoiceit, so a business is deleted the next time the app is used after its deadline.</p>
+      </section>
+
+      <section class="dev-sec" id="data">
+        <h2>Invoice data</h2>
+        <p>This is how a saved invoice looks inside Invoiceit. It's published to explain the model. It isn't a public API contract and may change.</p>
+<pre><code>{
+  "id": "4f1c…",                    // set by the database
+  "no": "00042",                    // set by the database, never changes
+  "date": "08-11-2026 02:15 PM",
+  "cust": "Ada Okafor",
+  "phone": "0803 000 0000",
+  "salesBy": "Tunde",
+  "currency": "NGN",
+  "store": { "name": "…", "addr": "…", "phone": "…" },
+  "items": [
+    { "desc": "Phone case", "serial": "", "qty": "2", "price": "3500" }
+  ],
+  "discount": "500",
+  "delivery": "1500",
+  "tax": "7.5",                     // VAT, in percent
+  "payments": [
+    { "method": "Cash", "amount": "5000", "date": "08-11-2026" }
+  ],
+  "notes": ""
+}</code></pre>
+        <p>Amounts are stored as the text typed in and are turned into numbers when totals are worked out. Totals, balance and status aren't stored; they're always worked out again from the items and payments.</p>
+      </section>
+
+      <section class="dev-sec" id="api">
+        <h2>API status</h2>
+        <p>Invoiceit doesn't have a public API yet, and there are no API keys to request. When one exists, its reference and guides will be published on this page.</p>
+        <p>If you need to connect Invoiceit to something now, email <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a> with what you'd like to build.</p>
+        <div class="dev-next">
+          <a href="developers.html"><small>← Previous</small>Overview</a>
+          <a href="integrations.html"><small>Next →</small>Integrations</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="lp-foot">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a class="foot-logo" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">Invoiceit</a>
+      <p>Invoices that add up. Write them in under a minute, track part payments, and always know who still owes you.</p>
+      <a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h3>Product</h3><a href="index.html#how">How it works</a><a href="index.html#features">Features</a><a href="index.html#balances">Balances</a><a href="index.html#pricing">Pricing</a><a href="index.html#faq">FAQ</a></div>
+      <div><h3>Developers</h3><a href="developers.html">Overview</a><a href="docs.html">Documentation</a><a href="integrations.html">Integrations</a></div>
+      <div><h3>Account</h3><a href="invoices.html">Login</a><a href="invoices.html#signup">Create Free Account</a><a href="mailto:brendanmebson@gmail.com">Contact</a></div>
+    </nav>
+  </div>
+  <div class="foot-pay"><img src="img/paystack-secured.png" width="1200" height="218" alt="Payments secured by Paystack. Visa, Mastercard, Verve, American Express and Apple Pay accepted." loading="lazy"></div>
+  <div class="foot-bottom"><span>© 2026 Invoiceit</span><span>Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></span></div>
+</footer>
+
+</body>
+</html>

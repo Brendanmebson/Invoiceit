@@ -1,0 +1,100 @@
+/* Developer pages: Overview (developers.html), Documentation (docs.html), Integrations (integrations.html).
+   Every statement on these pages must be true of the app today. If the app changes, change the page. */
+
+.dev-top .right{display:flex}
+.dev-top .right a{min-height:40px}
+
+/* Section tabs under the top bar */
+.dev-tabs{display:flex;gap:0;overflow-x:auto;background:#fff;border-bottom:2px solid var(--ink)}
+.dev-tabs a{display:flex;align-items:center;min-height:48px;padding:0 20px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;border-right:2px solid var(--ink)}
+.dev-tabs a:hover{background:var(--bg)}
+.dev-tabs a[aria-current="page"]{box-shadow:inset 0 -4px 0 var(--accent)}
+.dev-tabs a:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+
+/* Page head */
+.dev-head{background:var(--ink);color:#fff;padding:64px 24px 56px}
+.dev-head-in{max-width:1080px;margin:0 auto}
+.dev-head h1{margin:18px 0 14px;font-size:clamp(36px,6vw,60px);line-height:1;font-weight:900;letter-spacing:-.03em}
+.dev-head p{margin:0;max-width:640px;font-size:17px;line-height:1.6;color:#C9CCD1}
+
+/* Body */
+.dev{max-width:1080px;margin:0 auto;padding:56px 24px 96px}
+.dev-cols{display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px;align-items:start}
+.dev-main{max-width:760px;min-width:0}
+.dev-toc{position:sticky;top:96px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.dev-toc b{margin-bottom:8px;font-family:'Chivo Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.dev-toc a{padding:6px 0 6px 12px;border-left:2px solid #C4C7CC;color:var(--ink);text-decoration:none}
+.dev-toc a:hover{border-left-color:var(--ink)}
+
+.dev-sec{padding:36px 0;border-top:2px solid var(--ink);scroll-margin-top:72px}
+.dev-sec:first-child{padding-top:0;border-top:0}
+.dev-sec h2{margin:0 0 14px;font-size:28px;line-height:1.15;font-weight:900;letter-spacing:-.02em}
+.dev-sec h3{margin:28px 0 8px;font-size:18px;font-weight:900}
+.dev-sec p,.dev-sec li{font-size:15px;line-height:1.7;color:var(--mute)}
+.dev-sec p{margin:0 0 14px}
+.dev-sec ul,.dev-sec ol{margin:0 0 14px;padding-left:22px}
+.dev-sec li{margin-bottom:6px}
+.dev-sec li b,.dev-sec p b{color:var(--ink)}
+.dev-sec code{font-family:'Chivo Mono',monospace;font-size:13px;padding:1px 5px;background:#fff;border:1px solid #C4C7CC;color:var(--ink)}
+.dev-sec pre{margin:0 0 16px;padding:18px;overflow-x:auto;background:var(--bench);color:#E7E8EA;border:2px solid var(--ink);font-family:'Chivo Mono',monospace;font-size:13px;line-height:1.6}
+.dev-sec pre code{padding:0;background:none;border:0;color:inherit}
+.dev-sec .note{margin:16px 0;padding:14px 16px;background:#fff;border:2px solid var(--ink);border-left:6px solid var(--accent);font-size:14px;color:var(--ink)}
+
+/* Tables */
+.dev-table{width:100%;margin:4px 0 16px;border-collapse:collapse;background:#fff;border:2px solid var(--ink);font-size:14px}
+.dev-table th,.dev-table td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #C4C7CC;line-height:1.5}
+.dev-table th{background:var(--ink);color:#fff;font-weight:700}
+.dev-table td:first-child{font-weight:700;color:var(--ink);white-space:nowrap}
+.dev-table td{color:var(--mute)}
+.table-wrap{overflow-x:auto}
+
+/* Cards */
+.dev-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:8px 0 16px}
+.dev-card{display:flex;flex-direction:column;gap:6px;padding:20px;background:#fff;border:2px solid var(--ink)}
+.dev-card b{font-size:16px;color:var(--ink)}
+.dev-card span{font-size:14px;line-height:1.55;color:var(--mute)}
+a.dev-card{text-decoration:none;box-shadow:6px 6px 0 var(--ink);transition:transform .12s ease,box-shadow .12s ease}
+a.dev-card:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
+a.dev-card .go{margin-top:6px;font-family:'Chivo Mono',monospace;font-size:13px;font-weight:700;color:var(--accent-ink)}
+
+/* Status labels */
+.tag{display:inline-block;margin-left:8px;padding:2px 8px;font-family:'Chivo Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle;border:2px solid var(--ink)}
+.tag.live{background:var(--ink);color:#fff}
+.tag.soon{background:#fff;color:var(--ink)}
+
+/* Integration blocks */
+.integ{padding:24px;margin:0 0 16px;background:#fff;border:2px solid var(--ink)}
+.integ h3{margin:0 0 8px;font-size:20px}
+.integ dl{display:grid;grid-template-columns:140px minmax(0,1fr);gap:8px 16px;margin:16px 0 0;font-size:14px;line-height:1.55}
+.integ dt{font-weight:700;color:var(--ink)}
+.integ dd{margin:0;color:var(--mute)}
+
+/* Prev / next */
+.dev-next{display:flex;justify-content:space-between;gap:16px;margin-top:40px;padding-top:24px;border-top:2px solid var(--ink)}
+.dev-next a{display:flex;flex-direction:column;gap:4px;font-weight:900;font-size:18px;text-decoration:none}
+.dev-next a small{font-family:'Chivo Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.dev-next a:last-child{margin-left:auto;text-align:right}
+
+@media (prefers-reduced-motion:reduce){a.dev-card{transition:none}}
+@media (max-width:900px){
+  .dev-cols{grid-template-columns:minmax(0,1fr);gap:24px}
+  .dev-toc{position:static;padding:16px;background:#fff;border:2px solid var(--ink)}
+}
+@media (max-width:760px){
+  .dev-top{flex-wrap:nowrap}
+  .dev-top .left{width:auto}
+  .dev-top .left{flex:1 1 auto;min-width:0}
+  .dev-top .right{flex:none;margin-left:auto;width:auto;padding-right:6px;gap:0}
+  .dev-top .right>*{flex:none}
+  .dev-top .top-link{padding:0 10px}
+  .dev-head{padding:44px 16px 40px}
+  .dev{padding:36px 16px 72px}
+  .dev-cards{grid-template-columns:minmax(0,1fr)}
+  .integ{padding:18px}
+  .integ dl{grid-template-columns:minmax(0,1fr);gap:2px}
+  .integ dd{margin-bottom:10px}
+  .dev-tabs a{padding:0 16px}
+}
+
+/* Headings in Space Grotesk, matching the landing page. */
+.dev-head h1,.dev-sec h2,.dev-sec h3,.integ h3{font-family:'Space Grotesk','Chivo',system-ui,sans-serif;font-weight:700;letter-spacing:-.03em}

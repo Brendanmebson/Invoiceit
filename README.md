@@ -30,7 +30,9 @@ Open `index.html` (the landing page) and click Sign up or Sign in.
 - Payments go through the `invoiceit-billing` edge function (`supabase/functions/`), which needs the `PAYSTACK_SECRET_KEY` secret.
 
 ## Pages
-- `index.html`: public landing page
+- `index.html`: public landing page. Sample names and currency follow the visitor's time zone (Nigeria, US, UK, euro countries, else $). Preview a region at `/us` (or `/uk`, `/eu`, `/intl`, `/ng`), served by the rewrites in `vercel.json` / `_redirects`; locally use `?region=us`
+- `dashboard.html`: owners only, in the business's currency. Sales and money received for a period, last 6 months chart, who owes you, top items, payment methods, sales by staff
 - `invoices.html`: invoice list (sign in / sign up appear here when signed out; `#signup` opens sign up)
 - `new.html`, `invoice.html?id=...`: write, view, print, share, record payments
+- `developers.html`, `docs.html`, `integrations.html`: public developer pages (Overview, Documentation, Integrations). Keep them true to the app; update them when behaviour changes
 - `business.html`: business details and team (owners can edit and add people)

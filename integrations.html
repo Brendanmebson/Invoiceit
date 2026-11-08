@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoiceit · Integrations</title>
+<meta name="description" content="What Invoiceit connects to today: Paystack for subscriptions, WhatsApp for sharing invoices, printing and PDF, and invoice links.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/developers.css">
+</head>
+<body class="landing">
+
+<header class="topbar lp-top dev-top">
+  <div class="left"><a class="brand" href="index.html"><img src="favicon.svg" alt="" width="26" height="26">Invoiceit</a></div>
+  <div class="right"><a class="top-link" href="index.html">Home</a><a class="top-link" href="invoices.html">Login</a></div>
+</header>
+<nav class="dev-tabs" aria-label="Developers">
+  <a href="developers.html">Overview</a>
+  <a href="docs.html">Documentation</a>
+  <a href="integrations.html" aria-current="page">Integrations</a>
+</nav>
+
+<div class="dev-head">
+  <div class="dev-head-in">
+    <span class="chip"><span class="dot" aria-hidden="true"></span>Developers · Integrations</span>
+    <h1>What Invoiceit <span class="hl">connects to</span></h1>
+    <p>The services Invoiceit works with today, what each one does, and exactly what gets shared with it.</p>
+  </div>
+</div>
+
+<main class="dev">
+  <div class="dev-cols">
+    <nav class="dev-toc" aria-label="On this page">
+      <b>On this page</b>
+      <a href="#paystack">Paystack</a>
+      <a href="#whatsapp">WhatsApp</a>
+      <a href="#print">Print and PDF</a>
+      <a href="#links">Invoice links</a>
+      <a href="#supabase">Supabase</a>
+      <a href="#not-yet">Not yet available</a>
+    </nav>
+
+    <div class="dev-main">
+
+      <section class="dev-sec" id="paystack">
+        <h2>Paystack <span class="tag live">Live</span></h2>
+        <p>Invoiceit's own subscription is paid through Paystack. This is how a business pays for Invoiceit; it isn't used to collect money from your customers.</p>
+        <div class="integ">
+          <h3>How a payment goes</h3>
+          <ol>
+            <li>An owner presses pay on the Business page or the "trial ended" screen and chooses 1, 3, 6 or 12 months. The trial banner's <b>Pay now</b> button pays for 1 month.</li>
+            <li>Invoiceit's billing function works out the price from the business's region and opens a Paystack checkout. Card details are entered on Paystack, never in Invoiceit.</li>
+            <li>After paying, Paystack sends the owner back to Invoiceit, which asks Paystack to confirm the payment and adds the paid time.</li>
+            <li>If the browser never comes back (a closed tab or a dropped connection), Paystack's webhook confirms the payment anyway.</li>
+          </ol>
+          <dl>
+            <dt>Who can pay</dt><dd>Owners only. Staff can't start a payment.</dd>
+            <dt>Price</dt><dd>₦20,000 a month in Nigeria. $15 a month everywhere else, charged in US dollars by card.</dd>
+            <dt>Safeguards</dt><dd>Each Paystack payment is counted once, even if it's confirmed twice. The database checks the currency and amount against the business's own price before adding any time.</dd>
+            <dt>Shared with Paystack</dt><dd>The owner's email address, the amount, and an internal business ID so the payment lands on the right business. No invoice or customer data.</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="dev-sec" id="whatsapp">
+        <h2>WhatsApp <span class="tag live">Live</span></h2>
+        <p>On any saved invoice, <b>Share on WhatsApp</b> opens WhatsApp with a short summary already typed in. You pick the chat and press send yourself; Invoiceit never sends anything on its own.</p>
+        <div class="integ">
+          <h3>What the message says</h3>
+<pre><code>Mainland Gadgets · Invoice 00042
+Customer: Ada Okafor
+Total: ₦ 13,500.00
+Paid: ₦ 5,000.00
+Left to pay: ₦ 8,500.00
+Status: PART-PAID</code></pre>
+          <dl>
+            <dt>Needs</dt><dd>WhatsApp on the phone, or WhatsApp Web or Desktop on a computer.</dd>
+            <dt>Sends</dt><dd>Text only. "Left to pay" appears only when there's a balance, and "Change" only when a customer overpaid. No PDF or link is attached.</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="dev-sec" id="print">
+        <h2>Print and PDF <span class="tag live">Live</span></h2>
+        <p><b>Print</b> and <b>Download PDF</b> both open your device's print dialog. Print to a paper or receipt printer, or choose <b>Save as PDF</b> to get a file you can email or keep.</p>
+        <div class="integ">
+          <dl>
+            <dt>What prints</dt><dd>Only the invoice: business name, address and phone, invoice number, customer, items, payments, totals and notes. Buttons and menus are left out.</dd>
+            <dt>Where</dt><dd>On a saved invoice, and while writing a new one.</dd>
+            <dt>Works on</dt><dd>Any browser that can print. On phones, "Save as PDF" is usually under Share or Print, depending on the device.</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="dev-sec" id="links">
+        <h2>Invoice links <span class="tag live">Live</span></h2>
+        <p><b>Copy link</b> on a saved invoice copies its web address, so a teammate can open the same invoice on another device.</p>
+        <p class="note">Links are for your team, not your customers. Whoever opens one has to sign in to an account in the same business, or they won't see the invoice. To send a customer their invoice, use WhatsApp or a PDF.</p>
+      </section>
+
+      <section class="dev-sec" id="supabase">
+        <h2>Supabase <span class="tag live">Built on</span></h2>
+        <p>Invoiceit stores its data and handles sign-in with Supabase. This isn't something you set up or connect: it's where every business's invoices, team and join codes live. Each business can only reach its own rows; the <a href="developers.html#isolation">Overview</a> explains how.</p>
+      </section>
+
+      <section class="dev-sec" id="not-yet">
+        <h2>Not yet available</h2>
+        <p>These are often asked about. None of them exist today:</p>
+        <ul>
+          <li>Taking payments from your customers through Invoiceit.</li>
+          <li>Emailing or texting invoices from inside the app.</li>
+          <li>Public links that customers can open without an account.</li>
+          <li>Exporting invoices to CSV or syncing with accounting software.</li>
+          <li>A public API, API keys or webhooks for your own systems.</li>
+        </ul>
+        <p>If one of these would make a difference for your business, email <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a> and say how you'd use it.</p>
+        <div class="dev-next">
+          <a href="docs.html"><small>← Previous</small>Documentation</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="lp-foot">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a class="foot-logo" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">Invoiceit</a>
+      <p>Invoices that add up. Write them in under a minute, track part payments, and always know who still owes you.</p>
+      <a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h3>Product</h3><a href="index.html#how">How it works</a><a href="index.html#features">Features</a><a href="index.html#balances">Balances</a><a href="index.html#pricing">Pricing</a><a href="index.html#faq">FAQ</a></div>
+      <div><h3>Developers</h3><a href="developers.html">Overview</a><a href="docs.html">Documentation</a><a href="integrations.html">Integrations</a></div>
+      <div><h3>Account</h3><a href="invoices.html">Login</a><a href="invoices.html#signup">Create Free Account</a><a href="mailto:brendanmebson@gmail.com">Contact</a></div>
+    </nav>
+  </div>
+  <div class="foot-pay"><img src="img/paystack-secured.png" width="1200" height="218" alt="Payments secured by Paystack. Visa, Mastercard, Verve, American Express and Apple Pay accepted." loading="lazy"></div>
+  <div class="foot-bottom"><span>© 2026 Invoiceit</span><span>Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></span></div>
+</footer>
+
+</body>
+</html>

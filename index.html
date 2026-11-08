@@ -3,13 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="js/region.js"></script>
+<script>/* Region in the address. Runs before anything else loads.
+   - /ng/ → /ng, so relative links (css/, invoices.html) resolve from the site root.
+   - / (or /index.html) → the visitor's detected region, e.g. /ng or /us.
+     Skipped locally (no rewrites there, so /ng would 404) and when ?region= is set. */
+(function () {
+  var path = location.pathname, rest = location.search + location.hash;
+  if (/\/(ng|us|uk|eu|intl)\/$/i.test(path)) return location.replace(path.slice(0, -1) + rest);
+  var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname);
+  if (local || /[?&]region=/i.test(location.search) || !/(^|\/)(index\.html)?$/.test(path)) return;
+  location.replace(path.replace(/index\.html$/, '') + window.InvoiceitRegion.detect(false) + rest);
+})();</script>
 <title>Invoiceit · Invoices that add up</title>
 <meta name="description" content="Invoiceit: write invoices, record part payments, see who still owes, and print or share on WhatsApp from any device.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/landing.css">
 </head>
@@ -24,21 +36,38 @@
   <div class="left">
     <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="26" height="26">Invoiceit</a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="lpNav lpAuth" aria-label="Open menu"><span></span><span></span><span></span></button>
-    <nav id="lpNav" aria-label="Page sections"><a href="#how">How it works</a><a href="#features">Features</a><a href="#balances">Balances</a><a href="#pricing">Pricing</a></nav>
+    <nav id="lpNav" aria-label="Main">
+      <div class="dd">
+        <button class="dd-btn" type="button" aria-expanded="false" aria-controls="ddWhy">Why Invoiceit <svg class="caret" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        <div class="dd-menu" id="ddWhy" hidden><a href="#how">How it works</a><a href="#auto">Auto invoices</a><a href="#features">Features</a><a href="#balances">Balances</a></div>
+      </div>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <div class="dd">
+        <button class="dd-btn" type="button" aria-expanded="false" aria-controls="ddDev">Developers <svg class="caret" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        <div class="dd-menu" id="ddDev" hidden><a href="developers.html">Overview</a><a href="docs.html">Documentation</a><a href="integrations.html">Integrations</a></div>
+      </div>
+    </nav>
   </div>
-  <div class="right" id="lpAuth"><a class="top-btn" href="invoices.html">Sign in</a><a class="top-btn primary" href="invoices.html#signup">Sign up <span aria-hidden="true">↗</span></a></div>
+  <div class="right" id="lpAuth">
+    <a class="top-link" href="invoices.html">Login</a>
+    <a class="top-btn primary" href="invoices.html#signup">Create Free Account</a>
+    <div class="rgn">
+      <button class="rgn-btn" type="button" aria-expanded="false" aria-controls="rgnList" aria-label="Change region"><span class="flag" data-flag=""></span></button>
+      <ul class="rgn-list" id="rgnList" hidden></ul>
+    </div>
+  </div>
 </header>
 
 <main>
   <!-- HERO -->
   <section class="hero">
     <div class="hero-in">
-      <span class="chip"><span class="dot" aria-hidden="true"></span>For shops and small businesses</span>
-      <h1>Every sale on paper.<br><span class="hl">Every naira</span> accounted for.</h1>
-      <p class="lede">Write a proper invoice in under a minute, record full or part payments, and always know what each customer still owes, on the shop laptop or your phone.</p>
+      <h1><span class="ln"><span>Every sale on paper.</span></span> <span class="ln"><span><span class="hl" data-t="hero">Every naira</span> accounted for.</span></span></h1>
+      <p class="lede">Invoices in under a minute. Part payments tracked. Always know who still owes you.</p>
       <div class="cta">
-        <a class="btn primary" href="invoices.html#signup">Create your account <span aria-hidden="true">↗</span></a>
-        <a class="btn" href="#how">See how it works</a>
+        <a class="btn primary" href="invoices.html#signup">Create a free account</a>
+        <a class="hero-link" href="#how">See how it works</a>
       </div>
     </div>
 
@@ -49,26 +78,26 @@
         <div class="shot-body">
           <div class="shot-h">Invoices</div>
           <div class="stats">
-            <div class="stat"><span>INVOICED</span><span>₦ 1,131,500.00</span></div>
-            <div class="stat"><span>COLLECTED</span><span>₦ 414,500.00</span></div>
-            <div class="stat owed"><span>STILL OWED</span><span>₦ 717,000.00</span></div>
+            <div class="stat"><span>INVOICED</span><span data-m="invoiced">₦ 410,000.00</span></div>
+            <div class="stat"><span>COLLECTED</span><span data-m="collected">₦ 165,000.00</span></div>
+            <div class="stat owed"><span>STILL OWED</span><span data-m="owed">₦ 245,000.00</span></div>
             <div class="stat"><span>INVOICES</span><span>3</span></div>
           </div>
           <div class="table">
             <div class="thead"><span>NO.</span><span>DATE</span><span>CUSTOMER</span><span>ITEMS</span><span style="text-align:right">TOTAL</span><span>STATUS</span><span></span></div>
-            <div class="row"><span class="meta"><span class="c-no">00003</span><span class="c-date">05-11-2026</span></span><span class="c-cust">Oluwaseun Adebayo</span><span class="c-items">Phone 256GB new × 1, Fast charger 65W × 2</span><span class="c-total">₦ 697,000.00</span><span class="c-status"><span class="badge part">PART-PAID</span></span><span></span></div>
-            <div class="row"><span class="meta"><span class="c-no">00002</span><span class="c-date">04-11-2026</span></span><span class="c-cust">Amaka Eze</span><span class="c-items">Wireless earbuds × 1</span><span class="c-total">₦ 14,500.00</span><span class="c-status"><span class="badge">PAID</span></span><span></span></div>
-            <div class="row"><span class="meta"><span class="c-no">00001</span><span class="c-date">03-11-2026</span></span><span class="c-cust">Tunde Bakare</span><span class="c-items">Laptop 15 inch × 1</span><span class="c-total">₦ 420,000.00</span><span class="c-status"><span class="badge unpaid">UNPAID</span></span><span></span></div>
+            <div class="row"><span class="meta"><span class="c-no">00003</span><span class="c-date">05-11-2026</span></span><span class="c-cust" data-n="0">Oluwaseun Adebayo</span><span class="c-items">Office desk × 1, Office chair × 2</span><span class="c-total" data-m="inv3">₦ 275,000.00</span><span class="c-status"><span class="badge part">PART-PAID</span></span><span></span></div>
+            <div class="row"><span class="meta"><span class="c-no">00002</span><span class="c-date">04-11-2026</span></span><span class="c-cust" data-n="1">Amaka Eze</span><span class="c-items">Delivery and setup × 1</span><span class="c-total" data-m="delivery">₦ 15,000.00</span><span class="c-status"><span class="badge">PAID</span></span><span></span></div>
+            <div class="row"><span class="meta"><span class="c-no">00001</span><span class="c-date">03-11-2026</span></span><span class="c-cust" data-n="2">Tunde Bakare</span><span class="c-items">Shelving unit × 1</span><span class="c-total" data-m="shelving">₦ 120,000.00</span><span class="c-status"><span class="badge unpaid">UNPAID</span></span><span></span></div>
           </div>
         </div>
       </div>
       <div class="float-card">
         <div class="kv settle owed">
           <h3>DOES IT ADD UP?</h3>
-          <div class="r"><span>Items total</span><b>₦ 697,000.00</b></div>
-          <div class="r"><span>Paid</span><b>₦ 400,000.00</b></div>
-          <div class="r owed"><span>Left to pay</span><b>₦ 297,000.00</b></div>
-          <p class="msg">Part paid. ₦ 297,000.00 left to pay.</p>
+          <div class="r"><span>Items total</span><b data-m="inv3">₦ 275,000.00</b></div>
+          <div class="r"><span>Paid</span><b data-m="paid3">₦ 150,000.00</b></div>
+          <div class="r owed"><span>Left to pay</span><b data-m="left">₦ 125,000.00</b></div>
+          <p class="msg" data-m="left" data-tpl="Part paid. {} left to pay.">Part paid. ₦ 125,000.00 left to pay.</p>
         </div>
       </div>
     </div>
@@ -78,7 +107,7 @@
   <section class="facts">
     <div class="facts-lead">
       <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg></span>
-      <p>Built for shops that sell the way you do: phones, laptops, accessories and more, paid in full or in parts.</p>
+      <p>Built for businesses that sell the way you do: goods or services, paid in full or in parts.</p>
     </div>
     <div class="fact"><b>4</b><span>Currencies: ₦ $ £ €</span></div>
     <div class="fact"><b>3</b><span>Clear statuses: paid, part-paid, unpaid</span></div>
@@ -88,7 +117,6 @@
   <!-- HOW IT WORKS -->
   <section class="sect" id="how">
     <div class="sect-head">
-      <span class="chip light"><span class="dot" aria-hidden="true"></span>How it works</span>
       <h2>From sale to receipt<br>in <span class="hl">four steps</span></h2>
       <p>The same order the counter already works in. Nothing to learn, nothing to set up per sale.</p>
     </div>
@@ -96,10 +124,10 @@
       <li class="step">
         <i>01</i>
         <h3>Add what was sold</h3>
-        <p>Product, IMEI or serial, quantity and price. Leave quantity blank and it counts as one.</p>
+        <p>Item or service, an optional serial or note, quantity and price. Leave quantity blank and it counts as one.</p>
         <div class="mini">
-          <div class="mini-line"><span>Phone 128GB new</span><b>₦ 620,000.00</b></div>
-          <div class="mini-line muted"><span>IMEI 35678901234…</span><span>× 1</span></div>
+          <div class="mini-line"><span>Office desk</span><b data-m="desk">₦ 185,000.00</b></div>
+          <div class="mini-line muted"><span>Oak, 140 cm</span><span>× 1</span></div>
         </div>
       </li>
       <li class="step">
@@ -116,7 +144,7 @@
         <h3>Check it adds up</h3>
         <p>The desk compares payments with the items total as you type, and refuses to save an overpayment.</p>
         <div class="mini">
-          <div class="mini-line"><span>Left to pay</span><b class="red">₦ 297,000.00</b></div>
+          <div class="mini-line"><span>Left to pay</span><b class="red" data-m="left">₦ 125,000.00</b></div>
           <div class="mini-line ok"><span>Fully paid. Payments match.</span></div>
         </div>
       </li>
@@ -131,10 +159,40 @@
     </ol>
   </section>
 
+  <!-- AUTO: what Invoiceit fills in by itself. Keep every line true of the app
+       (no scheduled or API-made invoices yet; the FAQ says so). -->
+  <section class="sect" id="auto">
+    <div class="sect-head">
+      <h2>You add the sale.<br><span class="hl">Invoiceit writes the rest.</span></h2>
+      <p>Set up your business once. After that, every invoice is generated for you from what was sold.</p>
+    </div>
+    <div class="auto-grid">
+      <div class="auto-card">
+        <h3>You type</h3>
+        <ul>
+          <li>The customer's name</li>
+          <li>What they bought: item, quantity, price</li>
+          <li>How they paid</li>
+        </ul>
+      </div>
+      <div class="auto-arrow" aria-hidden="true"><svg width="40" height="24" viewBox="0 0 40 24"><path d="M0 12h34M26 3l9 9-9 9" fill="none" stroke="currentColor" stroke-width="3"/></svg></div>
+      <div class="auto-card done">
+        <h3>Invoiceit generates</h3>
+        <ul>
+          <li>Your business name, address and phone at the top</li>
+          <li>The next invoice number and today's date</li>
+          <li>Line totals, discount, delivery, VAT and the grand total</li>
+          <li>The payment, filled in with the full amount</li>
+          <li>What's paid, what's left and the status</li>
+          <li>A finished invoice to print, save as PDF or send on WhatsApp</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- FEATURES -->
   <section class="sect" id="features">
     <div class="sect-head">
-      <span class="chip light"><span class="dot" aria-hidden="true"></span>Features</span>
       <h2>Everything the counter needs,<br><span class="hl">nothing it doesn't</span></h2>
     </div>
 
@@ -142,12 +200,12 @@
       <article class="feat">
         <div class="feat-vis vis-paper" aria-hidden="true">
           <div class="paper mini-paper"><div class="in-pad">
-            <div class="p-head"><span class="p-name">Your Business</span><span class="p-addr">Your shop address</span></div>
+            <div class="p-head"><span class="p-name">Your Business</span><span class="p-addr">Your business address</span></div>
             <div class="p-title">Invoice</div>
-            <div class="p-grid p-th"><span>Product</span><span>Qty</span><span>Price</span><span>Subtotal</span></div>
-            <div class="p-grid p-tr"><div><div class="pn">Phone 256GB new</div></div><span>1</span><span>660,000</span><span>660,000</span></div>
-            <div class="p-grid p-tr"><div><div class="pn">Fast charger 65W</div></div><span>2</span><span>18,500</span><span>37,000</span></div>
-            <div class="p-sum"><b>Total:</b><span>₦ 697,000.00</span></div>
+            <div class="p-grid p-th"><span>Item</span><span>Qty</span><span>Price</span><span>Subtotal</span></div>
+            <div class="p-grid p-tr"><div><div class="pn">Office desk</div></div><span>1</span><span data-p="desk">185,000</span><span data-p="desk">185,000</span></div>
+            <div class="p-grid p-tr"><div><div class="pn">Office chair</div></div><span>2</span><span data-p="chair">45,000</span><span data-p="chair2">90,000</span></div>
+            <div class="p-sum"><b>Total:</b><span data-m="inv3">₦ 275,000.00</span></div>
           </div></div>
         </div>
         <h3>Your name on every invoice</h3>
@@ -156,7 +214,7 @@
 
       <article class="feat">
         <div class="feat-vis vis-owed" aria-hidden="true">
-          <div class="stat owed"><span>STILL OWED</span><span>₦ 717,000.00</span></div>
+          <div class="stat owed"><span>STILL OWED</span><span data-m="owed">₦ 245,000.00</span></div>
           <div class="seg"><button tabindex="-1">All</button><button tabindex="-1">PAID</button><button tabindex="-1" aria-pressed="true">PART-PAID</button><button tabindex="-1">UNPAID</button></div>
         </div>
         <h3>See who still owes, at a glance</h3>
@@ -167,8 +225,8 @@
         <div class="feat-vis vis-phone" aria-hidden="true">
           <div class="phone">
             <div class="phone-top">YOUR BUSINESS</div>
-            <div class="phone-row"><span>Amaka Eze</span><span class="badge">PAID</span></div>
-            <div class="phone-row"><span>Tunde Bakare</span><span class="badge unpaid">UNPAID</span></div>
+            <div class="phone-row"><span data-n="1">Amaka Eze</span><span class="badge">PAID</span></div>
+            <div class="phone-row"><span data-n="2">Tunde Bakare</span><span class="badge unpaid">UNPAID</span></div>
             <div class="phone-btn">+ NEW INVOICE</div>
           </div>
         </div>
@@ -188,7 +246,6 @@
   <!-- SPLIT -->
   <section class="split" id="balances">
     <div class="split-text">
-      <span class="chip light"><span class="dot" aria-hidden="true"></span>Part payments</span>
       <h2>Never lose track<br>of a <span class="hl">balance</span></h2>
       <p>When a customer pays in parts, each payment goes on the invoice with its method and date. The desk shows exactly what's left and won't let anyone record more than that.</p>
       <a class="btn dark" href="invoices.html">Open Invoiceit <span aria-hidden="true">↗</span></a>
@@ -196,31 +253,52 @@
     <div class="split-vis" aria-hidden="true">
       <div class="kv sum-card">
         <h3>SUMMARY</h3>
-        <div class="r"><span>Total</span><b>₦ 697,000.00</b></div>
-        <div class="r"><span>Paid</span><b>₦ 400,000.00</b></div>
-        <div class="r" style="border-bottom:1px solid #111"><span>Left to pay</span><b>₦ 297,000.00</b></div>
-        <p class="msg">Part paid. ₦ 297,000.00 left to pay.</p>
+        <div class="r"><span>Total</span><b data-m="inv3">₦ 275,000.00</b></div>
+        <div class="r"><span>Paid</span><b data-m="paid3">₦ 150,000.00</b></div>
+        <div class="r" style="border-bottom:1px solid #111"><span>Left to pay</span><b data-m="left">₦ 125,000.00</b></div>
+        <p class="msg" data-m="left" data-tpl="Part paid. {} left to pay.">Part paid. ₦ 125,000.00 left to pay.</p>
       </div>
       <div class="kv sum-card pays">
         <h3>PAYMENTS</h3>
-        <div class="r"><span>Bank Transfer<small>05-11-2026</small></span><b>₦ 400,000.00</b></div>
-        <div class="r"><span>POS<small>Today</small></span><b class="pending">₦ 297,000.00</b></div>
-        <div class="limit">Up to ₦ 297,000.00 (what is left to pay)</div>
+        <div class="r"><span>Bank Transfer<small>05-11-2026</small></span><b data-m="paid3">₦ 150,000.00</b></div>
+        <div class="r"><span>POS<small>Today</small></span><b class="pending" data-m="left">₦ 125,000.00</b></div>
+        <div class="limit" data-m="left" data-tpl="Up to {} (what is left to pay)">Up to ₦ 125,000.00 (what is left to pay)</div>
       </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS. PLACEHOLDERS: swap in real customer quotes (with their permission) before launch.
+       Names and places follow the visitor's region (see REGIONS below). -->
+  <section class="sect" id="reviews">
+    <div class="sect-head">
+      <h2>Businesses that<br><span class="hl">stopped guessing</span></h2>
+    </div>
+    <div class="rv-grid">
+      <figure class="rv" data-r="0">
+        <blockquote>“Customers pay me in two or three parts. Now I open their invoice and the balance is right there. No more arguments about what's left.”</blockquote>
+        <figcaption><span class="rv-av" aria-hidden="true">FO</span><span><b class="rv-name">Funmilayo Okafor</b><span class="rv-biz">Boutique owner, Lagos</span></span></figcaption>
+      </figure>
+      <figure class="rv" data-r="1">
+        <blockquote>“I send the invoice on WhatsApp before the event and record each deposit as it comes in. My staff use it on their phones too.”</blockquote>
+        <figcaption><span class="rv-av" aria-hidden="true">IM</span><span><b class="rv-name">Ibrahim Musa</b><span class="rv-biz">Catering, Abuja</span></span></figcaption>
+      </figure>
+      <figure class="rv" data-r="2">
+        <blockquote>“Two of us sell at the same time and the invoice numbers never clash. At the end of the day I know exactly who still owes.”</blockquote>
+        <figcaption><span class="rv-av" aria-hidden="true">CO</span><span><b class="rv-name">Chinedu Obi</b><span class="rv-biz">Building supplies, Onitsha</span></span></figcaption>
+      </figure>
     </div>
   </section>
 
   <!-- PRICING -->
   <section class="sect pricing" id="pricing">
     <div class="sect-head">
-      <span class="chip light"><span class="dot" aria-hidden="true"></span>Pricing</span>
       <h2>One plan.<br><span class="hl">14 days free.</span></h2>
       <p>Everything in Invoiceit, for the whole team. Try it free, then pay monthly with Paystack.</p>
     </div>
     <div class="price-card">
       <div class="price-top">
         <span class="price-name">Invoiceit</span>
-        <span class="price"><b>₦20,000</b><span>/ month</span></span>
+        <span class="price"><b data-t="price">₦20,000</b><span>/ month</span></span>
         <span class="price-sub">after your 14-day free trial</span>
       </div>
       <ul>
@@ -228,29 +306,135 @@
         <li><span class="tick" aria-hidden="true"></span>Owner plus as many staff as you need</li>
         <li><span class="tick" aria-hidden="true"></span>Print, PDF and WhatsApp sharing</li>
         <li><span class="tick" aria-hidden="true"></span>Works on laptop and phone</li>
-        <li><span class="tick" aria-hidden="true"></span>Pay by card, bank transfer or USSD via Paystack</li>
+        <li><span class="tick" aria-hidden="true"></span><span data-t="payWays">Pay by card, bank transfer or USSD via Paystack</span></li>
       </ul>
       <a class="btn primary" href="invoices.html#signup">Start your free trial <span aria-hidden="true">↗</span></a>
       <p class="price-fine">No card needed to start. After 14 days the owner can subscribe from inside the app. Businesses that stay unpaid are locked, then permanently deleted 14 days later.</p>
     </div>
   </section>
 
+  <!-- FAQ. Every answer here is true of the app today (see README); keep it that way. -->
+  <section class="sect" id="faq">
+    <div class="sect-head">
+      <h2>Questions,<br><span class="hl">answered</span></h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Do I need a card to start the free trial?</summary>
+        <p>No. Sign up with your email, a password and your business name, and you get 14 days free. Each email gets one trial.</p>
+      </details>
+      <details>
+        <summary>How much does it cost after the trial?</summary>
+        <p><span data-t="price">₦20,000</span> a month for the whole business, with as many staff as you need. The owner can pay for 1, 3, 6 or 12 months at a time, and paying early just adds the time on top of what's left.</p>
+      </details>
+      <details>
+        <summary>How do I pay?</summary>
+        <p data-t="faqPay">Through Paystack, by card, bank transfer or USSD. The owner pays from the Business page inside the app.</p>
+      </details>
+      <details>
+        <summary>Is it only for shops that sell gadgets?</summary>
+        <p>No. Invoiceit works for any business that sells goods or services: boutiques, caterers, hardware stores, print shops, repairers and more. Each line is just an item, an optional serial or note, a quantity and a price.</p>
+      </details>
+      <details>
+        <summary>Can Invoiceit generate invoices automatically?</summary>
+        <p>Yes, from each sale. You enter the customer, the items and how they paid, and Invoiceit fills in your business details, the invoice number, the date, every total and the balance, ready to print or share. It doesn't yet create invoices on a schedule or from other systems.</p>
+      </details>
+      <details>
+        <summary>How do my staff join?</summary>
+        <p>The owner creates a one-time join code on the Business page and gives it to the staff member. Codes expire after 7 days. Staff can write invoices and record payments, but they can't see or change the business details.</p>
+      </details>
+      <details>
+        <summary>Can other businesses see my invoices?</summary>
+        <p>No. Each business sees only its own invoices, team and join codes. This is enforced in the database itself, not just hidden in the app.</p>
+      </details>
+      <details>
+        <summary>Can I print invoices or send them as a PDF?</summary>
+        <p>Yes. Download PDF opens your device's print dialog: print it, or choose “Save as PDF”. You can also send the summary to the customer on WhatsApp.</p>
+      </details>
+      <details>
+        <summary>What happens if I stop paying?</summary>
+        <p>When paid time runs out, the business is locked until the owner pays. If it stays unpaid for 14 more days, the business and all its invoices, team and codes are permanently deleted.</p>
+      </details>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="cta-band">
     <h2>Ready for the <span class="hl">next sale?</span></h2>
-    <p>14 days free, then ₦20,000 a month. Write your first invoice in minutes.</p>
+    <p data-t="ctaLine">14 days free, then ₦20,000 a month. Write your first invoice in minutes.</p>
     <div class="cta"><a class="btn primary" href="invoices.html#signup">Start your free trial <span aria-hidden="true">↗</span></a><a class="btn" href="invoices.html">Sign in</a></div>
   </section>
 </main>
 
 <footer class="lp-foot">
-  <span class="brand-sm">Invoiceit</span>
-  <nav aria-label="Footer"><a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="invoices.html">Sign in</a><a href="invoices.html#signup">Sign up</a></nav>
-  <a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a>
-  <span class="credit-in">Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></span>
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a class="foot-logo" href="index.html"><img src="favicon.svg" alt="" width="28" height="28">Invoiceit</a>
+      <p>Invoices that add up. Write them in under a minute, track part payments, and always know who still owes you.</p>
+      <a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h3>Product</h3><a href="#how">How it works</a><a href="#features">Features</a><a href="#balances">Balances</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
+      <div><h3>Developers</h3><a href="developers.html">Overview</a><a href="docs.html">Documentation</a><a href="integrations.html">Integrations</a></div>
+      <div><h3>Account</h3><a href="invoices.html">Login</a><a href="invoices.html#signup">Create Free Account</a><a href="mailto:brendanmebson@gmail.com">Contact</a></div>
+    </nav>
+  </div>
+  <div class="foot-pay"><img src="img/paystack-secured.png" width="1200" height="218" alt="Payments secured by Paystack. Visa, Mastercard, Verve, American Express and Apple Pay accepted." loading="lazy"></div>
+  <div class="foot-bottom"><span>© 2026 Invoiceit</span><span>Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></span></div>
 </footer>
 
 <script>
+/* Local sample data: names, prices and currency in the previews follow the visitor's region,
+   worked out from the browser's time zone (no IP lookup). The HTML holds the Nigerian version,
+   so Nigeria, and anyone whose region can't be told, sees the page as written.
+   Region detection is shared with the app (js/region.js). Test any region at /us, /uk, /eu, /intl or /ng (or ?region=us when there are no rewrites, e.g. locally). */
+(function () {
+  var REGIONS = {
+    ng:   { sym: '₦', word: 'naira',  names: ['Oluwaseun Adebayo', 'Amaka Eze', 'Tunde Bakare'],
+            desk: 185000, chair: 45000, delivery: 15000, shelving: 120000, paid3: 150000,
+            reviews: [['Funmilayo Okafor', 'Boutique owner, Lagos'], ['Ibrahim Musa', 'Catering, Abuja'], ['Chinedu Obi', 'Building supplies, Onitsha']] },
+    us:   { sym: '$', word: 'dollar', names: ['Jessica Carter', 'Marcus Reed', 'Emily Brooks'],
+            desk: 449, chair: 129, delivery: 49, shelving: 299, paid3: 400,
+            reviews: [['Rachel Kim', 'Boutique owner, Austin'], ['David Moreno', 'Catering, Chicago'], ['Tyler Grant', 'Hardware store, Denver']] },
+    uk:   { sym: '£', word: 'pound',  names: ['Oliver Hughes', 'Charlotte Evans', 'Harry Patel'],
+            desk: 399, chair: 115, delivery: 45, shelving: 269, paid3: 350,
+            reviews: [['Sophie Turner', 'Boutique owner, Leeds'], ['James Walsh', 'Catering, Manchester'], ['Aisha Khan', 'Print shop, Birmingham']] },
+    eu:   { sym: '€', word: 'euro',   names: ['Marie Dubois', 'Luca Rossi', 'Sofia García'],
+            desk: 429, chair: 125, delivery: 49, shelving: 289, paid3: 380,
+            reviews: [['Claire Martin', 'Boutique owner, Lyon'], ['Matteo Bianchi', 'Catering, Milan'], ['Jonas Weber', 'Hardware store, Munich']] },
+    intl: { sym: '$', word: 'dollar', names: ['Daniel Lee', 'Priya Shah', 'Alex Martin'],
+            desk: 449, chair: 129, delivery: 49, shelving: 299, paid3: 400,
+            reviews: [['Grace Tan', 'Boutique owner'], ['Omar Haddad', 'Catering'], ['Lucas Silva', 'Hardware store']] }
+  };
+  var RG = window.InvoiceitRegion, key = RG.detect(true), R = REGIONS[key];
+  document.documentElement.setAttribute('data-region', key);
+  if (key === 'ng') return;
+  var price = RG.priceText(RG.plan(key), 1);
+  var inv3 = R.desk + 2 * R.chair, left = inv3 - R.paid3;
+  var M = { desk: R.desk, chair: R.chair, chair2: 2 * R.chair, delivery: R.delivery, shelving: R.shelving,
+            paid3: R.paid3, inv3: inv3, left: left, invoiced: inv3 + R.delivery + R.shelving, collected: R.paid3 + R.delivery, owed: left + R.shelving };
+  function plain(n, dp) { return n.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
+  function each(sel, fn) { [].forEach.call(document.querySelectorAll(sel), fn); }
+
+  each('[data-m]', function (el) {
+    var v = R.sym + ' ' + plain(M[el.getAttribute('data-m')], 2), tpl = el.getAttribute('data-tpl');
+    el.textContent = tpl ? tpl.replace('{}', v) : v;
+  });
+  each('[data-p]', function (el) { el.textContent = plain(M[el.getAttribute('data-p')], 0); });
+  each('[data-n]', function (el) { el.textContent = R.names[+el.getAttribute('data-n')]; });
+  each('[data-r]', function (el) {
+    var r = R.reviews[+el.getAttribute('data-r')];
+    el.querySelector('.rv-name').textContent = r[0]; el.querySelector('.rv-biz').textContent = r[1];
+    el.querySelector('.rv-av').textContent = r[0].split(' ').map(function (w) { return w.charAt(0); }).join('');
+  });
+  each('[data-t="hero"]', function (el) { el.textContent = 'Every ' + R.word; });
+  /* Real price outside Nigeria ($15, charged in US dollars by Paystack, card only). Must match invoiceit_plan. */
+  each('[data-t="price"]', function (el) { el.textContent = price; });
+  each('[data-t="ctaLine"]', function (el) { el.textContent = '14 days free, then ' + price + ' a month. Write your first invoice in minutes.'; });
+  each('[data-t="faqPay"]', function (el) { el.textContent = 'Through Paystack, by card, charged in US dollars. The owner pays from the Business page inside the app.'; });
+  each('[data-t="payWays"]', function (el) { el.textContent = 'Pay by card via Paystack, from anywhere'; });
+})();
+
 /* Phone menu: the hamburger shows the page links plus Sign in / Sign up. */
 (function () {
   var top = document.querySelector('.lp-top'), btn = top.querySelector('.menu-btn');
@@ -262,6 +446,268 @@
   btn.addEventListener('click', function () { set(!top.classList.contains('open')); });
   top.addEventListener('click', function (e) { if (e.target.closest('nav a, .right a')) set(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && top.classList.contains('open')) { set(false); btn.focus(); } });
+})();
+
+/* Nav dropdowns (Why Invoiceit, Developers): click to open, one at a time; outside click or Escape closes. */
+(function () {
+  var dds = [].slice.call(document.querySelectorAll('.dd'));
+  function set(dd, open) {
+    dd.querySelector('.dd-menu').hidden = !open;
+    dd.querySelector('.dd-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  dds.forEach(function (dd) {
+    dd.querySelector('.dd-btn').addEventListener('click', function () {
+      var open = dd.querySelector('.dd-menu').hidden;
+      dds.forEach(function (o) { set(o, o === dd && open); });
+    });
+    dd.querySelector('.dd-menu').addEventListener('click', function (e) { if (e.target.closest('a')) set(dd, false); });
+  });
+  document.addEventListener('click', function (e) { dds.forEach(function (dd) { if (!dd.contains(e.target)) set(dd, false); }); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    dds.forEach(function (dd) { if (!dd.querySelector('.dd-menu').hidden) { set(dd, false); dd.querySelector('.dd-btn').focus(); } });
+  });
+})();
+
+/* Region switcher (flag, top right): lists the five regions, current one marked.
+   Links go to /ng, /us etc.; locally (no rewrites) they use ?region= instead. */
+(function () {
+  var wrap = document.querySelector('.rgn'), btn = wrap.querySelector('.rgn-btn'), list = wrap.querySelector('.rgn-list');
+  var eu = '';
+  for (var i = 0; i < 12; i++) { var a = i * Math.PI / 6; eu += '<circle cx="' + (15 + 6 * Math.sin(a)).toFixed(2) + '" cy="' + (10 - 6 * Math.cos(a)).toFixed(2) + '" r="0.9"/>'; }
+  var FLAGS = {
+    ng: '<svg viewBox="0 0 3 2"><path fill="#008751" d="M0 0h3v2H0z"/><path fill="#fff" d="M1 0h1v2H1z"/></svg>',
+    us: '<svg viewBox="0 0 38 20"><path fill="#B22234" d="M0 0h38v20H0z"/><path stroke="#fff" stroke-width="1.54" d="M0 2.31h38M0 5.38h38M0 8.46h38M0 11.54h38M0 14.62h38M0 17.69h38"/><path fill="#3C3B6E" d="M0 0h15.2v10.77H0z"/></svg>',
+    uk: '<svg viewBox="0 0 60 30"><path fill="#012169" d="M0 0h60v30H0z"/><path stroke="#fff" stroke-width="6" d="M0 0l60 30M60 0L0 30"/><path stroke="#C8102E" stroke-width="2" d="M0 0l60 30M60 0L0 30"/><path stroke="#fff" stroke-width="10" d="M30 0v30M0 15h60"/><path stroke="#C8102E" stroke-width="6" d="M30 0v30M0 15h60"/></svg>',
+    eu: '<svg viewBox="0 0 30 20"><path fill="#039" d="M0 0h30v20H0z"/><g fill="#FC0">' + eu + '</g></svg>',
+    intl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>'
+  };
+  var NAMES = { ng: ['Nigeria', '₦ NGN'], us: ['United States', '$ USD'], uk: ['United Kingdom', '£ GBP'], eu: ['Euro countries', '€ EUR'], intl: ['Everywhere else', '$ USD'] };
+  var key = window.InvoiceitRegion.detect(true);
+  var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname);
+  var base = location.pathname.replace(/(ng|us|uk|eu|intl)\/?$|index\.html$/i, '');
+  function flag(k) { return '<span class="flag' + (k === 'intl' ? ' globe' : '') + '" aria-hidden="true">' + FLAGS[k] + '</span>'; }
+
+  btn.querySelector('.flag').outerHTML = flag(key);
+  btn.setAttribute('aria-label', 'Region: ' + NAMES[key][0] + '. Change region');
+  list.innerHTML = Object.keys(NAMES).map(function (k) {
+    var href = local ? '?region=' + k : base + k;
+    return '<li><a href="' + href + '"' + (k === key ? ' aria-current="true"' : '') + '>' + flag(k) + NAMES[k][0] + '<small>' + NAMES[k][1] + '</small></a></li>';
+  }).join('');
+
+  function set(open) { list.hidden = !open; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  btn.addEventListener('click', function () { set(list.hidden); });
+  document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !list.hidden) { set(false); btn.focus(); } });
+})();
+
+/* Hero: moving the pointer leaves water ripples on the dark background (behind the text and the
+   invoice preview). A small height-field simulation, drawn at low resolution and stretched.
+   Sleeps when the water is calm or the hero is off screen; skipped for reduced motion. */
+(function () {
+  if (!window.matchMedia || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var hero = document.querySelector('.hero');
+  if (!hero) return;
+  var cv = document.createElement('canvas');
+  cv.className = 'hero-water'; cv.setAttribute('aria-hidden', 'true');
+  hero.insertBefore(cv, hero.firstChild);
+  var ctx = cv.getContext('2d');
+  // The background grid is redrawn here (instead of the CSS gradient) so its lines bend with the waves.
+  var gcv = document.createElement('canvas');
+  gcv.className = 'hero-water'; gcv.setAttribute('aria-hidden', 'true');
+  hero.insertBefore(gcv, cv);
+  var gctx = gcv.getContext('2d');
+  hero.classList.add('grid-live');
+  var CELL = 6, DAMP = 0.965, BEND = 0.9, MAXBEND = 14, SEG = 6;
+  var w, h, cur, prev, img, raf = 0, calm = 0, visible = true, last = null, W, H, GAP;
+
+  function size() {
+    W = hero.clientWidth; H = hero.clientHeight;
+    GAP = matchMedia('(max-width:760px)').matches ? 40 : 56;
+    w = Math.ceil(W / CELL) + 2; h = Math.ceil(H / CELL) + 2;
+    cv.width = w; cv.height = h;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    gcv.width = Math.round(W * dpr); gcv.height = Math.round(H * dpr);
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cur = new Float32Array(w * h); prev = new Float32Array(w * h);
+    img = ctx.createImageData(w, h);
+    grid(false);
+  }
+  // Height of the water at a fractional cell position (bilinear).
+  function height(fx, fy) {
+    if (fx < 0) fx = 0; else if (fx > w - 1.001) fx = w - 1.001;
+    if (fy < 0) fy = 0; else if (fy > h - 1.001) fy = h - 1.001;
+    var x0 = fx | 0, y0 = fy | 0, tx = fx - x0, ty = fy - y0, i = y0 * w + x0;
+    var a = cur[i] + (cur[i + 1] - cur[i]) * tx, b = cur[i + w] + (cur[i + w + 1] - cur[i + w]) * tx;
+    return a + (b - a) * ty;
+  }
+  // Soft limit: small ripples still show a few px of bend, big ones level off near MAXBEND.
+  function clampBend(v) { v *= BEND; return v / (1 + (v < 0 ? -v : v) / MAXBEND); }
+  // Draw the grid, each point pushed along the slope of the water beneath it.
+  function grid(bend) {
+    gctx.clearRect(0, 0, W, H);
+    gctx.strokeStyle = 'rgba(255,255,255,.045)'; gctx.lineWidth = 1;
+    gctx.beginPath();
+    var sx = w / W, sy = h / H, x, y, fx, fy;
+    function pt(px, py, first) {
+      if (bend) {
+        fx = px * sx; fy = py * sy;
+        px += clampBend(height(fx - 1, fy) - height(fx + 1, fy));
+        py += clampBend(height(fx, fy - 1) - height(fx, fy + 1));
+      }
+      if (first) gctx.moveTo(px, py); else gctx.lineTo(px, py);
+    }
+    for (x = 0.5; x < W; x += GAP) { if (bend) { for (y = 0; y <= H + SEG; y += SEG) pt(x, y, y === 0); } else { gctx.moveTo(x, 0); gctx.lineTo(x, H); } }
+    for (y = 0.5; y < H; y += GAP) { if (bend) { for (x = 0; x <= W + SEG; x += SEG) pt(x, y, x === 0); } else { gctx.moveTo(0, y); gctx.lineTo(W, y); } }
+    gctx.stroke();
+  }
+  function drop(x, y, force) {
+    var cx = Math.round(x / hero.clientWidth * w), cy = Math.round(y / hero.clientHeight * h);
+    for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) {
+      var px = cx + dx, py = cy + dy, d = dx * dx + dy * dy;
+      if (px < 1 || py < 1 || px >= w - 1 || py >= h - 1 || d > 4) continue;
+      cur[py * w + px] += force * (1 - d / 5);
+    }
+    wake();
+  }
+  function step() {
+    var energy = 0, d = img.data, i, x, y;
+    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+      i = y * w + x;
+      var v = ((cur[i - 1] + cur[i + 1] + cur[i - w] + cur[i + w]) * 0.5 - prev[i]) * DAMP;
+      prev[i] = v; energy += v < 0 ? -v : v;
+    }
+    var t = cur; cur = prev; prev = t;
+    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+      i = y * w + x;
+      var s = (cur[i - 1] - cur[i + 1]) + (cur[i - w] - cur[i + w]), a = s * 0.55, p = i * 4;
+      if (a > 0) { d[p] = 235; d[p + 1] = 240; d[p + 2] = 255; d[p + 3] = a > 70 ? 70 : a; }   // light side of a wave
+      else { d[p] = 0; d[p + 1] = 0; d[p + 2] = 0; d[p + 3] = -a > 60 ? 60 : -a; }              // shadow side
+    }
+    ctx.putImageData(img, 0, 0);
+    return energy;
+  }
+  function loop() {
+    raf = 0;
+    if (!visible) return;
+    if (step() < w * h * 0.004) { if (++calm > 30) { ctx.clearRect(0, 0, w, h); grid(false); return; } } else calm = 0;
+    grid(true);
+    raf = requestAnimationFrame(loop);
+  }
+  function wake() { calm = 0; if (!raf && visible) raf = requestAnimationFrame(loop); }
+
+  hero.addEventListener('pointermove', function (e) {
+    var r = hero.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (last) {
+      var dist = Math.hypot(x - last.x, y - last.y), n = Math.min(6, Math.ceil(dist / (CELL * 2)));
+      var force = Math.min(260, 60 + dist * 6) / n;
+      for (var k = 1; k <= n; k++) drop(last.x + (x - last.x) * k / n, last.y + (y - last.y) * k / n, force);
+    }
+    last = { x: x, y: y };
+  });
+  hero.addEventListener('pointerleave', function () { last = null; });
+  new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) wake(); }).observe(hero);
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
+  size();
+})();
+
+/* How it works, on a loop: steps 01 and 03 have their card text typed out; steps 02 and 04
+   show a mouse pointer hovering between the buttons, then clicking one. Skipped for reduced motion. */
+(function () {
+  if (!window.matchMedia || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var steps = document.querySelector('.steps');
+  if (!steps) return;
+  var cards = [].slice.call(steps.querySelectorAll('.mini'));
+  if (cards.length < 4) return;
+  cards.forEach(function (m) { m.setAttribute('aria-hidden', 'true'); }); // decorative; the step text describes it
+
+  function leaves(m) {
+    return [].slice.call(m.querySelectorAll('span, b')).filter(function (el) { return !el.children.length && el.textContent.trim(); })
+      .map(function (el) { return { el: el, text: el.textContent }; });
+  }
+  var typed = [leaves(cards[0]), leaves(cards[2])];
+
+  // Step 02: the dropdown starts empty and the click picks Bank Transfer.
+  var pick = cards[1].querySelector('.mini-pick span'), pickText = pick.textContent;
+  var opts = [].slice.call(cards[1].querySelectorAll('.mini-opts span'));
+  var chosen = cards[1].querySelector('.mini-opts .on');
+  // Step 04: hover WhatsApp, then click Download PDF.
+  var btns = [].slice.call(cards[3].querySelectorAll('.b'));
+
+  var ptrSvg = '<svg viewBox="0 0 15 20" width="15" height="20"><path d="M1.5 1.5V17.5l4.6-4.4H13.5z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  var ptrs = [cards[1], cards[3]].map(function (m) {
+    var p = document.createElement('span'); p.className = 'tw-ptr'; p.innerHTML = ptrSvg; m.appendChild(p); return p;
+  });
+
+  var gen = 0;
+  function wait(ms, g) { return new Promise(function (ok, no) { setTimeout(function () { g === gen ? ok() : no(); }, ms); }); }
+
+  function reset() {
+    typed.forEach(function (list) { list.forEach(function (it) { it.el.textContent = ''; it.el.classList.remove('tw-cur'); }); });
+    pick.textContent = 'Select method';
+    opts.concat(btns).forEach(function (el) { el.classList.remove('on', 'hov', 'press'); });
+    ptrs.forEach(function (p) { p.classList.remove('show', 'down'); place(p, null); });
+  }
+  function place(p, target) {
+    var m = p.parentNode, mr = m.getBoundingClientRect(), x, y;
+    if (target) { var r = target.getBoundingClientRect(); x = r.left - mr.left + r.width * 0.55; y = r.top - mr.top + r.height * 0.55; }
+    else { x = mr.width - 24; y = mr.height + 6; }
+    p.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+  }
+
+  function type(list, g) {
+    return list.reduce(function (pr, it) {
+      return pr.then(function () {
+        it.el.classList.add('tw-cur');
+        var c = 0;
+        return (function next() {
+          if (c >= it.text.length) { it.el.classList.remove('tw-cur'); return wait(220, g); }
+          it.el.textContent = it.text.slice(0, ++c);
+          return wait(it.text.charAt(c - 1) === ' ' ? 20 : 30 + Math.random() * 40, g).then(next);
+        })();
+      });
+    }, Promise.resolve());
+  }
+
+  function hover(p, from, to, g) {
+    if (from) from.classList.remove('hov');
+    place(p, to);
+    return wait(550, g).then(function () { to.classList.add('hov'); return wait(450, g); });
+  }
+  function click(p, el, g) {
+    p.classList.add('down'); el.classList.add('press');
+    return wait(150, g).then(function () { p.classList.remove('down'); el.classList.remove('press', 'hov'); return wait(150, g); });
+  }
+
+  function run() {
+    var g = ++gen, p2 = ptrs[0], p4 = ptrs[1];
+    reset();
+    wait(400, g)
+      .then(function () { return type(typed[0], g); })
+      .then(function () { return wait(500, g); })
+      .then(function () { p2.classList.add('show'); return hover(p2, null, opts[0], g); })
+      .then(function () { return hover(p2, opts[0], opts[2], g); })
+      .then(function () { return hover(p2, opts[2], chosen, g); })
+      .then(function () { return click(p2, chosen, g); })
+      .then(function () { chosen.classList.add('on'); pick.textContent = pickText; return wait(600, g); })
+      .then(function () { p2.classList.remove('show'); return type(typed[1], g); })
+      .then(function () { return wait(500, g); })
+      .then(function () { p4.classList.add('show'); return hover(p4, null, btns[1], g); })
+      .then(function () { return hover(p4, btns[1], btns[0], g); })
+      .then(function () { return click(p4, btns[0], g); })
+      .then(function () { return wait(900, g); })
+      .then(function () { p4.classList.remove('show'); return wait(2200, g); })
+      .then(run, function () {});
+  }
+
+  steps.classList.add('tw');
+  reset();
+  var running = false;
+  new IntersectionObserver(function (es) {
+    var vis = es[0].isIntersecting;
+    if (vis && !running) { running = true; run(); }
+    else if (!vis && running) { running = false; gen++; } // stale timers see a new gen and stop
+  }, { threshold: 0.25 }).observe(steps);
 })();
 </script>
 </body>

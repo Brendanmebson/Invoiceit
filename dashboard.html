@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · Invoiceit</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="left">
+    <a class="brand" href="invoices.html">Invoiceit</a>
+    <nav><a class="on" href="dashboard.html">Dashboard</a><a href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a href="business.html">Business</a></nav>
+  </div>
+  <div class="right"><a class="top-btn primary new-btn" href="new.html" aria-label="New invoice"><span class="plus" aria-hidden="true">+</span><span class="lbl">New invoice</span></a></div>
+</header>
+
+<main class="page dash-page">
+  <div class="head-row">
+    <h1>Dashboard</h1>
+    <div class="seg" id="period">
+      <button data-p="month" aria-pressed="true">This month</button>
+      <button data-p="last" aria-pressed="false">Last month</button>
+      <button data-p="year" aria-pressed="false">This year</button>
+      <button data-p="all" aria-pressed="false">All time</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"><div class="stat"><span>LOADING</span><span>…</span></div></div>
+
+  <div class="dash-grid">
+    <section class="sec dash-wide">
+      <h2><i>01</i>Sales, last 6 months</h2>
+      <p class="hint">Invoiced each month. The dark part has been paid.</p>
+      <div class="chart" id="chart"></div>
+    </section>
+
+    <section class="sec">
+      <h2><i>02</i>Who owes you</h2>
+      <p class="hint">Every unpaid balance, largest first. Not affected by the period.</p>
+      <div class="box" id="owed"></div>
+    </section>
+
+    <section class="sec">
+      <h2><i>03</i>Top items</h2>
+      <p class="hint" data-period-hint>By sales in the period.</p>
+      <div class="box" id="items"></div>
+    </section>
+
+    <section class="sec">
+      <h2><i>04</i>How customers paid</h2>
+      <p class="hint" data-period-hint>Money received in the period, by method.</p>
+      <div class="box" id="methods"></div>
+    </section>
+
+    <section class="sec">
+      <h2><i>05</i>Sales by staff</h2>
+      <p class="hint" data-period-hint>From the "Sales by" name on each invoice.</p>
+      <div class="box" id="staff"></div>
+    </section>
+  </div>
+</main>
+
+<footer class="credit noprint"><a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a> Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></footer>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/region.js"></script>
+<script src="js/store.js"></script>
+<script>
+(function () {
+  var S = Store, data = [], period = 'month';
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function $(id) { return document.getElementById(id); }
+  function cash(n) { return S.money(n, S.currency()); }
+
+  /* Invoice and payment dates are stored as "dd-mm-yyyy" (invoices add a time after a space). */
+  function parseDate(s) {
+    var m = /^(\d{1,2})-(\d{1,2})-(\d{4})/.exec(String(s || '').trim());
+    if (!m) return null;
+    var d = new Date(+m[3], +m[2] - 1, +m[1]);
+    return isNaN(d) ? null : d;
+  }
+  function range(p) {
+    var now = new Date(), y = now.getFullYear(), mo = now.getMonth();
+    if (p === 'month') return [new Date(y, mo, 1), new Date(y, mo + 1, 1)];
+    if (p === 'last') return [new Date(y, mo - 1, 1), new Date(y, mo, 1)];
+    if (p === 'year') return [new Date(y, 0, 1), new Date(y + 1, 0, 1)];
+    return [new Date(0), new Date(8640000000000000)];
+  }
+  function inRange(d, r) { return !!d && d >= r[0] && d < r[1]; }
+  function prevRange(p) {
+    if (p === 'month') return range('last');
+    if (p === 'last') { var now = new Date(); return [new Date(now.getFullYear(), now.getMonth() - 2, 1), new Date(now.getFullYear(), now.getMonth() - 1, 1)]; }
+    if (p === 'year') { var y = new Date().getFullYear(); return [new Date(y - 1, 0, 1), new Date(y, 0, 1)]; }
+    return null;
+  }
+  function sales(r) { return data.reduce(function (a, d) { return a + (inRange(d.date, r) ? d.c.total : 0); }, 0); }
+  function received(r) {
+    return data.reduce(function (a, d) {
+      return a + d.inv.payments.reduce(function (b, p) { return b + (inRange(parseDate(p.date), r) ? S.num(p.amount) : 0); }, 0);
+    }, 0);
+  }
+  function change(now, before) {
+    if (before == null) return '';
+    if (before === 0) return now > 0 ? '<small>new this period</small>' : '';
+    var pct = Math.round((now - before) / before * 100);
+    return '<small class="' + (pct < 0 ? 'down' : 'up') + '">' + (pct > 0 ? '+' : '') + pct + '% vs ' + (period === 'year' ? 'last year' : 'month before') + '</small>';
+  }
+  /* Bar rows: [{ label, sub, value }] → simple ranked list with a share bar. */
+  function bars(list, empty) {
+    if (!list.length) return '<div class="line hint">' + empty + '</div>';
+    var max = Math.max.apply(null, list.map(function (x) { return x.value; })) || 1;
+    return list.map(function (x) {
+      return '<div class="line rank"><span class="who">' + S.esc(x.label) + (x.sub ? '<small>' + S.esc(x.sub) + '</small>' : '') + '</span>' +
+        '<span class="amt-r">' + cash(x.value) + '</span>' +
+        '<span class="bar" aria-hidden="true"><span style="width:' + Math.max(2, x.value / max * 100) + '%"></span></span></div>';
+    }).join('');
+  }
+  function group(fn, r) {
+    var map = {};
+    data.forEach(function (d) { if (inRange(d.date, r)) fn(d, map); });
+    return Object.keys(map).map(function (k) { return map[k]; }).sort(function (a, b) { return b.value - a.value; });
+  }
+
+  function renderStats() {
+    var r = range(period), pr = prevRange(period);
+    var inv = data.filter(function (d) { return inRange(d.date, r); });
+    var total = sales(r), got = received(r);
+    var owed = data.reduce(function (a, d) { return a + d.c.balance; }, 0);
+    $('stats').innerHTML =
+      '<div class="stat"><span>SALES</span><span>' + cash(total) + '</span>' + change(total, pr && sales(pr)) + '</div>' +
+      '<div class="stat"><span>MONEY RECEIVED</span><span>' + cash(got) + '</span>' + change(got, pr && received(pr)) + '</div>' +
+      '<div class="stat owed"><span>OWED TO YOU NOW</span><span>' + cash(owed) + '</span></div>' +
+      '<div class="stat"><span>INVOICES</span><span>' + inv.length + '</span>' + (inv.length ? '<small>avg ' + cash(total / inv.length) + '</small>' : '') + '</div>';
+  }
+  function renderChart() {
+    var now = new Date(), cols = [];
+    for (var i = 5; i >= 0; i--) {
+      var r = [new Date(now.getFullYear(), now.getMonth() - i, 1), new Date(now.getFullYear(), now.getMonth() - i + 1, 1)];
+      var inv = data.filter(function (d) { return inRange(d.date, r); });
+      var total = inv.reduce(function (a, d) { return a + d.c.total; }, 0);
+      var paid = inv.reduce(function (a, d) { return a + Math.min(d.c.paid, d.c.total); }, 0);
+      cols.push({ label: MONTHS[r[0].getMonth()], total: total, paid: paid, current: i === 0 });
+    }
+    var max = Math.max.apply(null, cols.map(function (c) { return c.total; })) || 1;
+    $('chart').innerHTML = cols.map(function (c) {
+      var h = c.total / max * 100, ph = c.total ? c.paid / c.total * 100 : 0;
+      return '<div class="col' + (c.current ? ' now' : '') + '" title="' + c.label + ': ' + cash(c.total) + ' invoiced, ' + cash(c.paid) + ' paid">' +
+        '<span class="val">' + (c.total ? S.plain(c.total).replace(/\.00$/, '') : '–') + '</span>' +
+        '<span class="track"><span class="fill" style="height:' + h + '%"><span class="paid" style="height:' + ph + '%"></span></span></span>' +
+        '<span class="lbl">' + c.label + '</span></div>';
+    }).join('');
+  }
+  function renderOwed() {
+    var list = data.filter(function (d) { return d.c.balance > 0; }).sort(function (a, b) { return b.c.balance - a.c.balance; });
+    if (!list.length) { $('owed').innerHTML = '<div class="line hint">Nobody owes you anything. Nice.</div>'; return; }
+    var shown = list.slice(0, 8);
+    $('owed').innerHTML = shown.map(function (d) {
+      var age = d.date ? Math.floor((Date.now() - d.date) / 86400000) : null;
+      return '<a class="line rank link" href="invoice.html?id=' + encodeURIComponent(d.inv.id) + '"><span class="who">' + S.esc(d.inv.cust || 'No name') +
+        '<small>' + S.esc(d.inv.no) + (age != null ? ' · ' + (age === 0 ? 'today' : age + ' day' + (age === 1 ? '' : 's') + ' ago') : '') + '</small></span>' +
+        '<span class="amt-r owed">' + cash(d.c.balance) + '</span>' + S.badge(d.c.status) + '</a>';
+    }).join('') + (list.length > shown.length ? '<a class="line hint link" href="invoices.html">+ ' + (list.length - shown.length) + ' more on the Invoices page</a>' : '');
+  }
+  function renderBreakdowns() {
+    var r = range(period);
+    var items = group(function (d, map) {
+      d.inv.items.forEach(function (i) {
+        var name = String(i.desc || '').trim(); if (!name) return;
+        var k = name.toLowerCase(), m = map[k] || (map[k] = { label: name, qty: 0, value: 0 });
+        m.qty += S.qty(i); m.value += S.qty(i) * S.num(i.price);
+      });
+    }, r).slice(0, 6);
+    items.forEach(function (x) { x.sub = S.plain(x.qty).replace(/\.00$/, '') + ' sold'; });
+    $('items').innerHTML = bars(items, 'No items sold in this period.');
+
+    var methods = {};
+    data.forEach(function (d) {
+      d.inv.payments.forEach(function (p) {
+        if (!inRange(parseDate(p.date), r) || S.num(p.amount) <= 0) return;
+        var k = p.method || 'Not recorded';
+        (methods[k] = methods[k] || { label: k, value: 0, n: 0 }).value += S.num(p.amount); methods[k].n++;
+      });
+    });
+    var ml = Object.keys(methods).map(function (k) { return methods[k]; }).sort(function (a, b) { return b.value - a.value; });
+    ml.forEach(function (x) { x.sub = x.n + ' payment' + (x.n === 1 ? '' : 's'); });
+    $('methods').innerHTML = bars(ml, 'No money received in this period.');
+
+    var staff = group(function (d, map) {
+      var name = String(d.inv.salesBy || '').trim() || 'Not recorded', k = name.toLowerCase();
+      var m = map[k] || (map[k] = { label: name, value: 0, n: 0 });
+      m.value += d.c.total; m.n++;
+    }, r);
+    staff.forEach(function (x) { x.sub = x.n + ' invoice' + (x.n === 1 ? '' : 's'); });
+    $('staff').innerHTML = bars(staff, 'No sales in this period.');
+  }
+  function render() { renderStats(); renderBreakdowns(); }
+
+  $('period').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    period = b.dataset.p;
+    [].forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    render();
+  });
+
+  S.ready().then(function () {
+    if (!S.isOwner()) { location.replace('invoices.html'); return; } // dashboard is for owners
+    return S.all().then(function (list) {
+      // Everything is in the business's currency; invoices in other currencies are left out and counted.
+      var cur = S.currency(), other = 0;
+      data = list.filter(function (i) { if ((i.currency || 'NGN') === cur) return true; other++; return false; })
+        .map(function (i) { return { inv: i, c: S.calc(i), date: parseDate(i.date) }; });
+      if (other) {
+        var note = document.createElement('p'); note.className = 'stats-note';
+        note.textContent = 'All figures are in ' + cur + '. ' + other + ' invoice' + (other === 1 ? ' is' : 's are') + ' in another currency and not included.';
+        $('stats').parentNode.insertBefore(note, $('stats').nextSibling);
+      }
+      render(); renderChart(); renderOwed();
+    });
+  }).catch(function (err) { $('stats').innerHTML = '<div class="stat"><span>COULD NOT LOAD</span><span style="font-size:15px">' + S.esc(err.message) + '</span></div>'; });
+})();
+</script>
+</body>
+</html>

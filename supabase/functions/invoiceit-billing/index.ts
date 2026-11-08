@@ -1,4 +1,6 @@
-// Invoiceit billing: Paystack checkout for the ₦20,000/month subscription.
+// Invoiceit billing: Paystack checkout for the monthly subscription.
+// Price depends on the business's region (see invoiceit_plan in the database): ₦20,000 in Nigeria, $15 elsewhere.
+// USD charges need USD enabled on the Paystack account.
 // Actions (POST JSON):
 //   { action: "init", months, callback_url }  -> owner only; returns Paystack authorization_url
 //   { action: "verify", reference }           -> checks the payment with Paystack and adds paid time
@@ -9,7 +11,6 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const PRICE_KOBO = 2_000_000; // ₦20,000
 const PAYSTACK = "https://api.paystack.co";
 const SECRET = Deno.env.get("PAYSTACK_SECRET_KEY") ?? "";
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -35,14 +36,14 @@ async function paystack(path: string, init: RequestInit = {}) {
 // Adds paid time once Paystack says the charge succeeded. Safe to call twice for the same reference.
 async function settle(tx: Record<string, any>) {
   if (tx.status !== "success") throw new Error("Payment was not successful.");
-  if (tx.currency !== "NGN") throw new Error("Unexpected currency.");
   const businessId = tx.metadata?.business_id;
   if (!businessId) throw new Error("Payment is missing its business.");
-  if (tx.amount < PRICE_KOBO) throw new Error("Amount is less than one month.");
+  // The database checks the currency and amount against this business's plan.
   const { data, error } = await admin.rpc("invoiceit_record_payment", {
     p_reference: tx.reference,
     p_business_id: businessId,
-    p_amount_kobo: tx.amount,
+    p_amount: tx.amount,
+    p_currency: tx.currency,
     p_paid_at: tx.paid_at ?? new Date().toISOString(),
     p_raw: tx,
   });
@@ -95,12 +96,14 @@ Deno.serve(async (req) => {
       if (member.role !== "owner") return json({ error: "Only the business owner can pay." }, 403);
       const months = Math.min(12, Math.max(1, Math.floor(Number(body.months) || 1)));
       const callback = typeof body.callback_url === "string" && /^https?:\/\//.test(body.callback_url) ? body.callback_url : undefined;
+      const { data: plan, error: planErr } = await admin.rpc("invoiceit_business_plan", { p_business_id: member.business_id });
+      if (planErr || !plan) return json({ error: "Could not work out the price for this business." }, 500);
       const tx = await paystack("/transaction/initialize", {
         method: "POST",
         body: JSON.stringify({
           email: user.email,
-          amount: PRICE_KOBO * months,
-          currency: "NGN",
+          amount: plan.amount * months,
+          currency: plan.currency,
           callback_url: callback,
           metadata: { business_id: member.business_id, months, user_id: user.id, app: "invoiceit" },
         }),

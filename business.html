@@ -15,7 +15,7 @@
 <header class="topbar">
   <div class="left">
     <a class="brand" href="invoices.html">Invoiceit</a>
-    <nav><a href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a class="on" href="business.html">Business</a></nav>
+    <nav><a href="dashboard.html">Dashboard</a><a href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a class="on" href="business.html">Business</a></nav>
   </div>
   <div class="right"><a class="top-btn primary new-btn" href="new.html" aria-label="New invoice"><span class="plus" aria-hidden="true">+</span><span class="lbl">New invoice</span></a></div>
 </header>
@@ -27,7 +27,7 @@
     <h2><i>01</i>Subscription</h2>
     <div id="plan" class="plan">Loading…</div>
     <div class="pay-row" id="payRow" hidden>
-      <label class="f">Pay for<select id="months"><option value="1">1 month · ₦20,000</option><option value="3">3 months · ₦60,000</option><option value="6">6 months · ₦120,000</option><option value="12">12 months · ₦240,000</option></select></label>
+      <label class="f">Pay for<select id="months"></select></label>
       <button class="btn primary" type="button" id="payBtn">Pay with Paystack</button>
     </div>
   </section>
@@ -36,7 +36,7 @@
     <h2><i>02</i>Details on every invoice</h2>
     <p class="hint" id="detailsHint">These print at the top of new invoices. Invoices already saved keep the details they were made with.</p>
     <form id="details" class="biz-form">
-      <label class="f">Business name<input id="bName" maxlength="80" required placeholder="e.g. Adebayo Gadgets"></label>
+      <label class="f">Business name<input id="bName" maxlength="80" required placeholder="e.g. Adebayo Ventures"></label>
       <label class="f">Shop address<input id="bAddr" placeholder="Shop no., plaza, street, area, city"></label>
       <label class="f">Phone numbers<input id="bPhone" class="mono" placeholder="0800 000 0000"></label>
       <button class="btn primary" type="submit" id="bSave">Save details</button>
@@ -63,6 +63,7 @@
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
+<script src="js/region.js"></script>
 <script src="js/store.js"></script>
 <script>
 (function () {
@@ -85,9 +86,10 @@
     var days = S.daysLeft(bl.access_until);
     el.className = 'plan' + (days <= 5 ? ' warn' : '');
     el.innerHTML = bl.on_trial
-      ? '<b>Free trial · ' + days + ' day' + (days === 1 ? '' : 's') + ' left</b><span>Ends ' + S.fmtDate(bl.access_until) + '. Then ₦20,000 a month. You can pay now; paid time starts after the trial.</span>'
+      ? '<b>Free trial · ' + days + ' day' + (days === 1 ? '' : 's') + ' left</b><span>Ends ' + S.fmtDate(bl.access_until) + '. Then ' + S.priceText(1) + ' a month. You can pay now; paid time starts after the trial.</span>'
       : '<b>Paid until ' + S.fmtDate(bl.access_until) + '</b><span>' + days + ' day' + (days === 1 ? '' : 's') + ' left. Paying again adds time on top.</span>';
     el.innerHTML += '<span class="hint">Unpaid businesses are locked when their time runs out and deleted 14 days later.</span>';
+    $('months').innerHTML = S.monthOptions();
     $('payRow').hidden = false;
   }
   $('payBtn').onclick = function () {

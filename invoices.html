@@ -15,7 +15,7 @@
 <header class="topbar">
   <div class="left">
     <a class="brand" href="invoices.html">Invoiceit</a>
-    <nav><a class="on" href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a href="business.html">Business</a></nav>
+    <nav><a href="dashboard.html">Dashboard</a><a class="on" href="invoices.html">Invoices</a><a href="new.html">New invoice</a><a href="business.html">Business</a></nav>
   </div>
   <div class="right"><a class="top-btn primary new-btn" href="new.html" aria-label="New invoice"><span class="plus" aria-hidden="true">+</span><span class="lbl">New invoice</span></a></div>
 </header>
@@ -51,20 +51,25 @@
 <footer class="credit noprint"><a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a> Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
+<script src="js/region.js"></script>
 <script src="js/store.js"></script>
 <script>
 (function () {
   var S = Store, filter = 'ALL', q = '', data = [];
 
   function renderStats() {
-    var invoiced = data.reduce(function (a, d) { return a + d.c.total; }, 0);
-    var owed = data.reduce(function (a, d) { return a + d.c.balance; }, 0);
+    // Totals are in the business's currency; invoices written in another currency are counted separately.
+    var cur = S.currency(), mine = data.filter(function (d) { return (d.inv.currency || 'NGN') === cur; });
+    var other = data.length - mine.length;
+    var invoiced = mine.reduce(function (a, d) { return a + d.c.total; }, 0);
+    var owed = mine.reduce(function (a, d) { return a + d.c.balance; }, 0);
     var paid = invoiced - owed;
     document.getElementById('stats').innerHTML =
-      '<div class="stat"><span>INVOICED</span><span>' + S.money(invoiced, 'NGN') + '</span></div>' +
-      '<div class="stat"><span>COLLECTED</span><span>' + S.money(paid, 'NGN') + '</span></div>' +
-      '<div class="stat owed"><span>STILL OWED</span><span>' + S.money(owed, 'NGN') + '</span></div>' +
-      '<div class="stat"><span>INVOICES</span><span>' + data.length + '</span></div>';
+      '<div class="stat"><span>INVOICED</span><span>' + S.money(invoiced, cur) + '</span></div>' +
+      '<div class="stat"><span>COLLECTED</span><span>' + S.money(paid, cur) + '</span></div>' +
+      '<div class="stat owed"><span>STILL OWED</span><span>' + S.money(owed, cur) + '</span></div>' +
+      '<div class="stat"><span>INVOICES</span><span>' + data.length + '</span></div>' +
+      (other ? '<p class="stats-note">Totals are in ' + cur + ' only. ' + other + ' invoice' + (other === 1 ? ' is' : 's are') + ' in another currency and not included.</p>' : '');
   }
   function renderRows() {
     var needle = q.trim().toLowerCase();
