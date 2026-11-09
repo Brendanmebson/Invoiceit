@@ -332,7 +332,10 @@
   .split-cards{grid-template-columns:1fr;margin-top:-40px}
   .who-grid{grid-template-columns:1fr}
   .who-grid .who-tall{grid-row:auto;aspect-ratio:4/5}
-  .who-card{width:auto;left:16px}
+  /* On phones the portrait is narrow, so the card sits low (over the shirt, above the caption) to keep the face clear */
+  .who-card{top:auto;bottom:52px;left:auto;right:12px;width:200px;gap:6px;padding:10px 12px;box-shadow:4px 4px 0 var(--ink)}
+  .who-card-top,.who-card-row{font-size:12px}
+  .who-card-row b{font-size:13px}
   .hero .lede{font-size:16px}
   .cta{flex-direction:column;align-self:stretch}
   .cta .btn{width:100%}
