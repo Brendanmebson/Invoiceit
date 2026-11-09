@@ -4,6 +4,8 @@
   var KEY = 'invoicedesk.invoices.v1';
   var SKEY = 'invoicedesk.settings.v1';
   var SYMS = { NGN: '₦', USD: '$', GBP: '£', EUR: '€' };
+  // Region on <html>, so screens like sign-in can show the visitor's regional photo (css/refresh.css).
+  try { document.documentElement.setAttribute('data-region', window.InvoiceitRegion.detect(false)); } catch (e) {}
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {

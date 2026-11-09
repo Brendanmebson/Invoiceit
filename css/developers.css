@@ -98,3 +98,8 @@ a.dev-card .go{margin-top:6px;font-family:'Chivo Mono',monospace;font-size:13px;
 
 /* Headings in Geist, matching the landing page. */
 .dev-head h1,.dev-sec h2,.dev-sec h3,.integ h3{font-family:'Geist','Chivo',system-ui,sans-serif;font-weight:700;letter-spacing:-.03em}
+
+/* Outline-icon pattern, matching the landing page: dark on the page, white on the black header */
+body.landing:has(.dev){background-image:url(../img/doodles-dark.svg);background-size:480px 480px;background-attachment:fixed}
+.dev-head{background-image:url(../img/doodles-light.svg);background-size:480px 480px}
+.dev-tabs{position:relative;z-index:1}

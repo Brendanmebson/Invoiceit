@@ -1,0 +1,39 @@
+/* Refresh for the app screens (invoices, new invoice, invoice, business, dashboard).
+   Brings them in line with the landing page: Geist headings, rounded buttons and fields, the outline-icon
+   pattern, and the sign-in card over a regional photo. Layout, forms, tables and the printed invoice are unchanged.
+   Loaded after styles.css. */
+:root{--ease-out:cubic-bezier(.16,1,.3,1)}
+
+/* Faint pattern of coins, receipts and invoices behind every screen (cards and panels sit on top of it) */
+body{background-image:url(../img/doodles-dark.svg);background-size:480px 480px;background-attachment:fixed}
+
+/* Headings in Geist, like the landing page */
+.page h1,.sec h2,.gate-card h1,.biz-page .api-h{font-family:'Geist','Chivo',system-ui,sans-serif;font-weight:600}
+.page h1{letter-spacing:-.035em}
+.sec h2,.gate-card h1{letter-spacing:-.02em}
+
+/* Buttons and fields: slightly rounded, buttons in sentence case */
+.btn,.trial-bar .btn,.toast,.coffee{border-radius:8px}
+.btn.primary{text-transform:none;letter-spacing:0;font-weight:700}
+.in,label.f input,label.f textarea,label.f select,.gate-card select,.gate-card input{border-radius:6px}
+.btn{transition:background-color .2s var(--ease-out),border-color .2s var(--ease-out),color .2s var(--ease-out),transform .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .page .btn:not(:disabled):hover,.gate-card .btn:not(:disabled):hover,.view .btn:not(:disabled):hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+  .page .btn:active,.gate-card .btn:active,.view .btn:active{transform:none;box-shadow:none;transition-duration:.08s}
+}
+
+/* Sign-in, sign-up and "trial ended" screens: the card over the visitor's regional shop photo */
+.gate:not(.modal){background:#111 linear-gradient(rgba(17,17,17,.55),rgba(17,17,17,.8)) center/cover no-repeat;
+  background-image:linear-gradient(rgba(17,17,17,.55),rgba(17,17,17,.8)),url(../img/hero-intl.webp);background-position:center,70% 30%;background-size:cover,cover}
+[data-region="ng"] .gate:not(.modal){background-image:linear-gradient(rgba(17,17,17,.55),rgba(17,17,17,.8)),url(../img/hero-ng.webp)}
+[data-region="us"] .gate:not(.modal){background-image:linear-gradient(rgba(17,17,17,.55),rgba(17,17,17,.8)),url(../img/hero-us.webp)}
+[data-region="uk"] .gate:not(.modal){background-image:linear-gradient(rgba(17,17,17,.55),rgba(17,17,17,.8)),url(../img/hero-uk.webp)}
+[data-region="eu"] .gate:not(.modal){background-image:linear-gradient(rgba(17,17,17,.55),rgba(17,17,17,.8)),url(../img/hero-eu.webp)}
+.gate:not(.modal) .gate-card{box-shadow:10px 10px 0 rgba(0,0,0,.55)}
+@media (max-width:760px){.gate:not(.modal){background-image:linear-gradient(rgba(17,17,17,.7),rgba(17,17,17,.85)),url(../img/hero-intl-960.webp)}}
+
+/* Nothing decorative on paper */
+@media print{body{background:#fff!important}}
+
+/* Header button in sentence case too ("+ New invoice") */
+.topbar .top-btn.primary{text-transform:none;letter-spacing:0;font-weight:700}
