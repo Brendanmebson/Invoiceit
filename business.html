@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>Business · Invoiceit</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -57,6 +58,28 @@
     </div>
     <div class="box" id="codes"></div>
   </section>
+
+  <section class="sec" id="apiSec" hidden>
+    <h2><i>05</i>API</h2>
+    <p class="hint">Create invoices from your own website or system. Each invoice created through the API uses one token from your monthly allowance. <a href="docs.html#api">How to use the API</a></p>
+    <div id="apiPlan" class="plan">Loading…</div>
+    <div class="api-plans" id="apiPlans"></div>
+
+    <h3 class="api-h">Keys</h3>
+    <p class="hint">Keep keys secret: anyone with a key can create invoices for this business. Use them only on a server, never in a website's browser code.</p>
+    <form class="api-new" id="apiNew">
+      <label class="f">Key name<input id="apiName" maxlength="60" placeholder="e.g. Online store"></label>
+      <button class="btn dark" type="submit" id="apiCreate">Create key</button>
+    </form>
+    <div class="api-newkey" id="apiNewKey" hidden role="status">
+      <b>Copy your new key now. It won't be shown again.</b>
+      <div class="api-keyrow"><code id="apiNewKeyVal"></code><button class="btn primary" type="button" id="apiCopy">Copy</button></div>
+    </div>
+    <div class="box" id="apiKeys"><div class="line">Loading…</div></div>
+
+    <h3 class="api-h">Recent API calls</h3>
+    <div class="box api-usage" id="apiUsage"><div class="line">Loading…</div></div>
+  </section>
 </main>
 
 <footer class="credit noprint"><a class="coffee" href="https://selar.com/showlove/brendan" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1 1 1.5 1 2.5M12 2.5c0 1 1 1.5 1 2.5"/></svg>Buy me a coffee</a> Made by <a href="https://github.com/Brendanmebson" target="_blank" rel="noopener">Brendan</a> · <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a></footer>
@@ -78,6 +101,8 @@
     $('bName').value = b.name; $('bAddr').value = b.addr; $('bPhone').value = b.phone;
     $('addSec').hidden = false;
     loadTeam();
+    $('apiSec').hidden = false;
+    loadApi();
   }).catch(function (err) { toast('Could not load. ' + err.message); });
 
   function showPlan() {
@@ -126,8 +151,72 @@
     }).catch(function (err) { $('members').innerHTML = '<div class="line">Could not load the team. ' + S.esc(err.message) + '</div>'; });
   }
 
+  /* ---------- API ---------- */
+  function when(iso) { return iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Never'; }
+  function priceOf(p) { return (S.SYMS[p.currency] || '') + (p.amount / 100).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+  function loadApi() {
+    Promise.all([S.apiDashboard(), S.apiKeys()]).then(function (r) {
+      var d = r[0], keys = r[1], q = d.quota, pct = q.limit ? Math.min(100, Math.round(q.used / q.limit * 100)) : 100;
+      $('apiPlan').className = 'plan' + (q.remaining <= Math.max(1, q.limit * 0.1) ? ' warn' : '');
+      $('apiPlan').innerHTML = '<b>' + S.esc(q.plan_name) + ' plan · ' + q.remaining + ' of ' + q.limit + ' tokens left</b>' +
+        '<div class="api-meter" role="img" aria-label="' + q.used + ' of ' + q.limit + ' tokens used"><span style="width:' + pct + '%"></span></div>' +
+        '<span>' + q.used + ' used this month. Resets ' + S.fmtDate(q.resets_at) + '.' +
+        (q.plan_until ? ' Plan paid until ' + S.fmtDate(q.plan_until) + '.' : '') + '</span>' +
+        (q.active ? '' : '<span class="hint">Your subscription has ended, so the API is paused until it is renewed.</span>');
+      $('apiPlans').innerHTML = d.plans.map(function (p) {
+        var current = p.code === q.plan;
+        return '<div class="api-plancard' + (current ? ' on' : '') + '"><b>' + S.esc(p.name) + '</b><span>' + p.monthly_tokens.toLocaleString() + ' invoices a month</span>' +
+          '<span class="api-price">' + (p.amount > 0 ? priceOf(p) + ' / month' : 'Free') + '</span>' +
+          (current ? (p.amount > 0 ? '<button class="btn" type="button" data-plan="' + p.code + '">Renew</button>' : '<span class="badge">CURRENT</span>')
+                   : (p.amount > 0 ? '<button class="btn primary" type="button" data-plan="' + p.code + '">Upgrade</button>' : '')) + '</div>';
+      }).join('');
+      $('apiKeys').innerHTML = keys.length ? keys.map(function (k) {
+        var off = !!k.revoked_at;
+        return '<div class="line member api-key' + (off ? ' off' : '') + '"><span class="who"><b>' + S.esc(k.name) + '</b>' +
+          '<code>inv_live_' + S.esc(k.key_prefix) + '…</code><small>Created ' + S.fmtDate(k.created_at) + ' · last used ' + when(k.last_used_at) + '</small></span>' +
+          (off ? '<span class="badge unpaid">REVOKED</span><span></span>'
+               : '<span class="badge">ACTIVE</span><button class="btn" type="button" data-revoke="' + k.id + '" data-name="' + S.esc(k.name) + '">Revoke</button>') + '</div>';
+      }).join('') : '<div class="line hint">No keys yet.</div>';
+      $('apiUsage').innerHTML = d.usage.length ? '<div class="line api-urow api-uhead"><span>When</span><span>Call</span><span>Result</span><span>Tokens</span><span>Key</span></div>' +
+        d.usage.map(function (u) {
+          var ok = u.status_code < 400;
+          return '<div class="line api-urow"><span>' + when(u.created_at) + '</span><span class="mono">' + S.esc(u.endpoint) + '</span>' +
+            '<span><span class="badge' + (ok ? '' : ' unpaid') + '">' + u.status_code + '</span></span><span>' + u.tokens_charged + '</span>' +
+            '<span class="mono">' + (u.key_prefix ? S.esc(u.key_prefix) : '–') + '</span></div>';
+        }).join('') : '<div class="line hint">No API calls yet.</div>';
+    }).catch(function (err) { $('apiPlan').innerHTML = 'Could not load the API details. ' + S.esc(err.message); });
+  }
+  $('apiNew').onsubmit = function (e) {
+    e.preventDefault();
+    var name = $('apiName').value.trim();
+    if (!name) { toast('Give the key a name.'); $('apiName').focus(); return; }
+    var btn = $('apiCreate'); btn.disabled = true; btn.textContent = 'Creating…';
+    S.createApiKey(name).then(function (k) {
+      $('apiNewKeyVal').textContent = k.key; $('apiNewKey').hidden = false; $('apiName').value = '';
+      loadApi();
+    }).catch(function (err) { toast(err.message); }).then(function () { btn.disabled = false; btn.textContent = 'Create key'; });
+  };
+  $('apiCopy').onclick = function () {
+    var v = $('apiNewKeyVal').textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast('Key copied.'); }, function () {
+      var r = document.createRange(); r.selectNodeContents($('apiNewKeyVal')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast('Select the key and copy it.');
+    });
+  };
+
   document.addEventListener('click', function (e) {
     var t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.revoke) {
+      if (!confirm('Revoke the key "' + t.dataset.name + '"? Anything using it will stop working straight away.')) return;
+      t.disabled = true;
+      S.revokeApiKey(t.dataset.revoke).then(function () { toast('Key revoked.'); loadApi(); }).catch(function (err) { t.disabled = false; toast(err.message); });
+      return;
+    }
+    if (t.dataset.plan) {
+      t.disabled = true; var label = t.textContent; t.textContent = 'Opening Paystack…';
+      S.payApiPlan(t.dataset.plan).catch(function (err) { t.disabled = false; t.textContent = label; toast(err.message); });
+      return;
+    }
     if (t.dataset.role) {
       t.disabled = true;
       S.newJoinCode(t.dataset.role).then(function (code) { loadTeam(); toast('Code ' + code + ' created.'); })

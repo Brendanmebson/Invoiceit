@@ -3,13 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Invoiceit · Developers</title>
-<meta name="description" content="The Invoiceit API: create invoices from your own systems, with API keys, monthly tokens and safe retries.">
+<title>Invoiceit API: create invoices from your own systems</title>
+<meta name="description" content="Create invoices programmatically with the Invoiceit REST API: API keys, monthly tokens, safe retries with idempotency keys, and JSON responses with totals and balances.">
+<link rel="canonical" href="https://invoiceit.site/developers.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Invoiceit">
+<meta property="og:url" content="https://invoiceit.site/developers.html">
+<meta property="og:title" content="Invoiceit API: create invoices from your own systems">
+<meta property="og:description" content="Create invoices programmatically with the Invoiceit REST API: API keys, monthly tokens, safe retries with idempotency keys, and JSON responses with totals and balances.">
+<meta property="og:image" content="https://invoiceit.site/img/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Invoiceit API: create invoices from your own systems">
+<meta name="twitter:description" content="Create invoices programmatically with the Invoiceit REST API: API keys, monthly tokens, safe retries with idempotency keys, and JSON responses with totals and balances.">
+<meta name="twitter:image" content="https://invoiceit.site/img/og-image.jpg">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Geist:wght@600;700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/landing.css">
 <link rel="stylesheet" href="css/developers.css">
@@ -37,10 +52,10 @@
 <main class="dev">
   <div class="dev-main">
     <section class="dev-sec" id="about">
-      <h2>The Invoiceit API <span class="tag soon">In development</span></h2>
+      <h2>The Invoiceit API <span class="tag live">Live</span></h2>
       <p>The API lets your own systems write invoices into Invoiceit: an online store, a point-of-sale till, a booking form or a spreadsheet script. Invoices created through the API land in the same list as the ones your staff write, with the same numbering, totals and balances.</p>
       <p>It's a REST API over HTTPS that sends and receives JSON. Every request is signed with an API key that belongs to one business, and it can only reach that business's invoices.</p>
-      <p class="note">The API isn't open yet. This page describes how it will work so you can plan an integration. Details may change before launch.</p>
+      <p class="note">Start with the <a href="docs.html#api">quickstart</a>, then see every endpoint in the <a href="api.html">API reference</a>.</p>
     </section>
 
     <section class="dev-sec" id="keys">
@@ -70,7 +85,7 @@
         </table>
       </div>
       <ul>
-        <li><b>Every business starts on Free.</b> Paid API plan prices will be announced at launch.</li>
+        <li><b>Every business starts on Free.</b> The owner can upgrade in <b>Business → API</b>, where prices are shown in the business's currency. A paid plan lasts 30 days from payment; if it isn't renewed, the business goes back to Free.</li>
         <li><b>Monthly allowance.</b> Your tokens refill one month after the last refill, and also whenever you renew your Invoiceit subscription. Unused tokens don't carry over.</li>
         <li><b>Failed requests are free.</b> If an invoice can't be saved, the token is given back.</li>
         <li><b>Out of tokens.</b> Requests to create invoices are refused until your allowance refills. Your app and existing invoices keep working as normal.</li>
@@ -89,8 +104,8 @@
     </section>
 
     <section class="dev-sec" id="access">
-      <h2>Get early access</h2>
-      <p>If you'd like to build on the API, email <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a> with your business name and what you want to connect. Early requests shape which endpoints come first.</p>
+      <h2>Get started</h2>
+      <p>The business owner creates a key in <b>Business → API</b>. Then follow the <a href="docs.html#api">quickstart</a> to create your first invoice, and use the <a href="api.html">API reference</a> for every endpoint. Questions: <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a>.</p>
     </section>
 
     <section class="dev-sec" id="next">

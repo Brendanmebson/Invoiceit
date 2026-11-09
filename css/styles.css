@@ -267,6 +267,30 @@ label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
 .pay-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .pay-row label.f{flex:1 1 220px}
 .pay-row .btn{min-height:44px}
+.biz-page .api-h{margin:8px 0 0;font-size:16px;font-weight:900}
+.api-meter{height:10px;background:var(--field);border:2px solid var(--ink)}
+.api-meter span{display:block;height:100%;background:var(--ink)}
+.plan.warn .api-meter span{background:var(--accent)}
+.api-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.api-plancard{display:flex;flex-direction:column;gap:6px;padding:14px;background:#fff;border:2px solid var(--ink)}
+.api-plancard.on{box-shadow:inset 0 6px 0 var(--accent)}
+.api-plancard b{font-size:16px}
+.api-plancard span{font-size:14px;color:var(--mute)}
+.api-plancard .api-price{color:var(--ink);font-weight:700}
+.api-plancard .btn,.api-plancard .badge{align-self:flex-start;margin-top:6px}
+.api-new{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.api-new label.f{flex:1 1 240px}
+.api-new .btn{min-height:44px}
+.api-newkey{display:flex;flex-direction:column;gap:10px;padding:14px;background:#FFF7E0;border:2px solid var(--ink)}
+.api-keyrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.api-keyrow code{flex:1 1 260px;min-width:0;padding:10px;background:#fff;border:2px solid var(--ink);font-family:'Chivo Mono',monospace;font-size:14px;overflow-wrap:anywhere;user-select:all}
+.api-key code{font-family:'Chivo Mono',monospace;font-size:13px}
+.api-key small{color:var(--mute)}
+.api-key.off .who{opacity:.6}
+.box .line.api-urow{grid-template-columns:minmax(110px,1fr) minmax(0,2fr) 60px 56px 90px;align-items:center;font-size:13px}
+.api-uhead{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.api-urow .mono{font-family:'Chivo Mono',monospace;overflow-wrap:anywhere}
+@media (max-width:760px){.box .line.api-urow{grid-template-columns:1fr 1fr}.api-uhead{display:none}.api-new .btn{width:100%}}
 
 /* Buy me a coffee */
 .coffee{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;margin-right:12px;background:#FFDD00;color:#111!important;border:2px solid var(--ink);font-size:13px;font-weight:900;text-decoration:none;vertical-align:middle;box-shadow:3px 3px 0 var(--ink);transition:transform .15s ease,box-shadow .15s ease}

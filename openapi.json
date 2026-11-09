@@ -1,0 +1,1109 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Invoiceit API",
+    "version": "1.0.0",
+    "description": "Create and read invoices for your Invoiceit business. Every request needs an API key (Business → API in the app), sent as `Authorization: Bearer inv_live_...`. One token is charged for each invoice created; reads and payments are free. Limit: 60 requests per minute per key. Every error has the same shape: `{ \"error\": { \"code\", \"message\", \"details\"? } }`.",
+    "contact": {
+      "email": "brendanmebson@gmail.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api"
+    }
+  ],
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Invoices"
+    },
+    {
+      "name": "Payments"
+    },
+    {
+      "name": "Usage"
+    }
+  ],
+  "paths": {
+    "/v1/invoices": {
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Create an invoice",
+        "description": "Uses 1 token. Your business name, address and phone are added from your Invoiceit settings, and the next invoice number is assigned. Send an `Idempotency-Key` to retry safely: the same key and body return the original response without charging again (keys are kept 24 hours).",
+        "operationId": "createInvoice",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceInput"
+              },
+              "example": {
+                "customer": {
+                  "name": "Amaka Eze",
+                  "phone": "08031234567"
+                },
+                "currency": "NGN",
+                "items": [
+                  {
+                    "description": "Office desk",
+                    "quantity": 1,
+                    "unit_price": 185000
+                  },
+                  {
+                    "description": "Office chair",
+                    "quantity": 2,
+                    "unit_price": 45000
+                  }
+                ],
+                "delivery": 5000,
+                "tax_percent": 7.5,
+                "payments": [
+                  {
+                    "method": "bank_transfer",
+                    "amount": 150000
+                  }
+                ],
+                "notes": "Thank you for your business."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "headers": {
+              "X-Tokens-Remaining": {
+                "$ref": "#/components/headers/TokensRemaining"
+              },
+              "Idempotent-Replayed": {
+                "description": "\"true\" when this is the stored response of an earlier request with the same Idempotency-Key.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Invoice"
+                    }
+                  }
+                },
+                "examples": {
+                  "created": {
+                    "$ref": "#/components/examples/InvoiceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadJson"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Validation"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "List invoices",
+        "description": "Newest first. Free. Use `next_cursor` from one page as `cursor` for the next.",
+        "operationId": "listInvoices",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PAID",
+                "UNPAID",
+                "PART-PAID"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Created at or after (ISO 8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Created before (ISO 8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of invoices",
+            "headers": {
+              "X-Tokens-Remaining": {
+                "$ref": "#/components/headers/TokensRemaining"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "422": {
+            "$ref": "#/components/responses/Validation"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/v1/invoices/{id}": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Get an invoice",
+        "operationId": "getInvoice",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InvoiceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Invoice"
+                    }
+                  }
+                },
+                "examples": {
+                  "invoice": {
+                    "$ref": "#/components/examples/InvoiceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/v1/invoices/{id}/payments": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Record a payment",
+        "description": "Free. The balance is read again from the saved invoice just before writing, and a payment larger than what's left is refused.",
+        "operationId": "addPayment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InvoiceId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentInput"
+              },
+              "example": {
+                "method": "pos",
+                "amount": 50000,
+                "date": "2026-11-09"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment recorded; returns the updated invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Invoice"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "description": "Invalid payment, overpayment (`overpayment`, with `details.balance`) or already paid (`already_paid`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": "overpayment",
+                    "message": "The payment is more than the 125000 left to pay. Overpayment is not allowed.",
+                    "details": {
+                      "balance": 125000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/v1/invoices/{id}/html": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Printable invoice (HTML)",
+        "description": "The invoice as a standalone A4 HTML page, laid out exactly like the app's printed invoice. The hosting platform labels the response text/plain, so save it as a .html file (e.g. `curl ... > invoice.html`) and open that to view, print or save as PDF.",
+        "operationId": "getInvoiceHtml",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InvoiceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/invoices/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Invoice PDF (not available yet)",
+        "description": "Returns 501 for now. Use the `/html` endpoint and print or save it as PDF.",
+        "operationId": "getInvoicePdf",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InvoiceId"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "Not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_implemented",
+                    "message": "PDF output isn't available yet. Use GET /v1/invoices/{id}/html and print it or save it as PDF from a browser.",
+                    "details": {
+                      "html_url": "https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api/v1/invoices/{id}/html"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/usage": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "Plan and tokens",
+        "operationId": "getUsage",
+        "responses": {
+          "200": {
+            "description": "Current allowance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Usage"
+                    }
+                  }
+                },
+                "example": {
+                  "data": {
+                    "plan": "free",
+                    "plan_name": "Free",
+                    "tokens_limit": 20,
+                    "tokens_used": 3,
+                    "tokens_remaining": 17,
+                    "resets_at": "2026-12-09T10:00:00Z",
+                    "subscription_active": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "inv_live_ + 32 hex characters",
+        "description": "Create keys in Invoiceit → Business → API. Owners only."
+      }
+    },
+    "parameters": {
+      "InvoiceId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Any unique value up to 255 characters, e.g. your order number.",
+        "schema": {
+          "type": "string",
+          "maxLength": 255
+        }
+      }
+    },
+    "headers": {
+      "TokensRemaining": {
+        "description": "Tokens left this month.",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+    "schemas": {
+      "InvoiceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "customer",
+          "currency",
+          "items"
+        ],
+        "properties": {
+          "customer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 40
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "NGN",
+              "USD",
+              "GBP",
+              "EUR"
+            ]
+          },
+          "issue_date": {
+            "type": "string",
+            "description": "ISO 8601. The time is kept as written. Default: now, in your business's time zone.",
+            "examples": [
+              "2026-11-09T14:30:00+01:00"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "description",
+                "unit_price"
+              ],
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "serial": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "quantity": {
+                  "type": "number",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "unit_price": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "At most 2 decimal places."
+                }
+              }
+            }
+          },
+          "discount": {
+            "type": "number",
+            "minimum": 0,
+            "default": 0
+          },
+          "delivery": {
+            "type": "number",
+            "minimum": 0,
+            "default": 0
+          },
+          "tax_percent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 0
+          },
+          "payments": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/PaymentInput"
+            },
+            "description": "Must not add up to more than the total."
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "sales_by": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "amount"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer",
+              "pos"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "date": {
+            "type": "string",
+            "description": "ISO 8601 date. Default: today."
+          }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string",
+            "examples": [
+              "00042"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "UNPAID",
+              "PART-PAID"
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "issue_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Business local time, no offset."
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "phone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "serial": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "quantity": {
+                  "type": "number"
+                },
+                "unit_price": {
+                  "type": "number"
+                },
+                "line_total": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "date": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "discount": {
+            "type": "number"
+          },
+          "delivery": {
+            "type": "number"
+          },
+          "tax_percent": {
+            "type": "number"
+          },
+          "tax": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "paid": {
+            "type": "number"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sales_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A staff email, or api:<key prefix>."
+          },
+          "business": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "links": {
+            "type": "object",
+            "properties": {
+              "app_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Opens in the Invoiceit app for your team (sign-in required)."
+              },
+              "html_url": {
+                "type": "string",
+                "description": "Printable page; needs your API key."
+              }
+            }
+          }
+        }
+      },
+      "InvoiceList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Invoice"
+            }
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Usage": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "string"
+          },
+          "plan_name": {
+            "type": "string"
+          },
+          "tokens_limit": {
+            "type": "integer"
+          },
+          "tokens_used": {
+            "type": "integer"
+          },
+          "tokens_remaining": {
+            "type": "integer"
+          },
+          "resets_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subscription_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {}
+            }
+          }
+        }
+      }
+    },
+    "examples": {
+      "InvoiceResponse": {
+        "summary": "An invoice",
+        "value": {
+          "data": {
+            "id": "84526e4b-cd81-41c4-917f-5a96be8b14be",
+            "number": "00042",
+            "status": "PART-PAID",
+            "currency": "NGN",
+            "issue_date": "2026-11-09T14:30:00",
+            "customer": {
+              "name": "Amaka Eze",
+              "phone": "08031234567"
+            },
+            "items": [
+              {
+                "description": "Office desk",
+                "serial": null,
+                "quantity": 1,
+                "unit_price": 185000,
+                "line_total": 185000
+              },
+              {
+                "description": "Office chair",
+                "serial": null,
+                "quantity": 2,
+                "unit_price": 45000,
+                "line_total": 90000
+              }
+            ],
+            "payments": [
+              {
+                "method": "bank_transfer",
+                "amount": 150000,
+                "date": "2026-11-09"
+              }
+            ],
+            "subtotal": 275000,
+            "discount": 0,
+            "delivery": 5000,
+            "tax_percent": 7.5,
+            "tax": 20625,
+            "total": 300625,
+            "paid": 150000,
+            "balance": 150625,
+            "notes": "Thank you for your business.",
+            "sales_by": null,
+            "created_by": "api:3f9a12c0",
+            "business": {
+              "name": "Adebayo Ventures",
+              "address": "12 Allen Avenue, Ikeja, Lagos",
+              "phone": "0800 000 0000"
+            },
+            "created_at": "2026-11-09T13:30:02Z",
+            "updated_at": "2026-11-09T13:30:02Z",
+            "links": {
+              "app_url": null,
+              "html_url": "https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api/v1/invoices/84526e4b-cd81-41c4-917f-5a96be8b14be/html"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadJson": {
+        "description": "Body isn't JSON",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "invalid_json",
+                "message": "The request body is not valid JSON."
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing, wrong or revoked key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "unauthorized",
+                "message": "This API key has been revoked."
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "Out of tokens (`tokens_exhausted`) or subscription ended (`subscription_inactive`)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "tokens_exhausted",
+                "message": "You have used all 20 invoice tokens on the free plan this month. Upgrade your plan in Invoiceit (Business → API), or wait until 2026-12-09 when your allowance resets.",
+                "details": {
+                  "plan": "free",
+                  "limit": 20,
+                  "used": 20,
+                  "resets_at": "2026-12-09T10:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "No such invoice in this business",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "not_found",
+                "message": "No invoice with that id in this business."
+              }
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Same Idempotency-Key still being processed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "idempotency_in_progress",
+                "message": "A request with this Idempotency-Key is still being processed. Retry shortly."
+              }
+            }
+          }
+        }
+      },
+      "Validation": {
+        "description": "Invalid input, with one entry per field",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "validation_failed",
+                "message": "The invoice has errors. See details.",
+                "details": [
+                  {
+                    "field": "items.0.unit_price",
+                    "message": "Must be greater than 0."
+                  },
+                  {
+                    "field": "payments",
+                    "message": "Payments add up to 310000, which is more than the invoice total of 300625. Overpayment is not allowed."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "More than 60 requests in a minute",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "rate_limited",
+                "message": "Too many requests. The limit is 60 per minute per key."
+              }
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Something failed on our side",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "internal_error",
+                "message": "Something went wrong on our side. Please try again."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

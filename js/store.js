@@ -327,6 +327,19 @@
   function deleteJoinCode(code) { return db.from('invoiceit_join_codes').delete().eq('code', code).then(function (r) { if (r.error) fail(r.error); }); }
   function removeMember(uid) { return db.from('invoiceit_members').delete().eq('user_id', uid).then(function (r) { if (r.error) fail(r.error); }); }
 
+  /* ---------- API (owners only; the database refuses everyone else) ---------- */
+  function rpcData(name, args) { return db.rpc(name, args || {}).then(function (r) { if (r.error) fail(r.error); return r.data; }); }
+  function apiDashboard() { return rpcData('invoiceit_api_dashboard'); }
+  function apiKeys() { return rpcData('invoiceit_list_api_keys'); }
+  /* Returns { id, name, key, key_prefix, created_at }. The full key is only ever returned here. */
+  function createApiKey(name) { return rpcData('invoiceit_create_api_key', { p_name: name }); }
+  function revokeApiKey(id) { return rpcData('invoiceit_revoke_api_key', { p_id: id }); }
+  /* Sends the owner to Paystack for a paid API plan; Paystack brings them back with ?reference=... */
+  function payApiPlan(plan) {
+    var back = location.origin + location.pathname;
+    return callBilling({ action: 'api_plan_init', plan: plan, callback_url: back }).then(function (d) { location.href = d.authorization_url; });
+  }
+
   function all() {
     return db.from('invoiceit_invoices').select('id,no,data').order('no', { ascending: false }).then(function (r) {
       if (r.error) fail(r.error);
@@ -458,6 +471,7 @@
   window.Store = {
     esc: esc, num: num, qty: qty, methodSelect: methodSelect, plain: plain, money: money, today: today, nowStr: nowStr, SYMS: SYMS,
     business: business, isOwner: isOwner, billing: billing, pay: pay, priceText: priceText, monthOptions: monthOptions, currency: currency, fmtDate: fmtDate, daysLeft: daysLeft, updateBusiness: updateBusiness, team: team, newJoinCode: newJoinCode, deleteJoinCode: deleteJoinCode, removeMember: removeMember,
+    apiDashboard: apiDashboard, apiKeys: apiKeys, createApiKey: createApiKey, revokeApiKey: revokeApiKey, payApiPlan: payApiPlan,
     settings: settings, saveSettings: saveSettings,
     ready: ready, all: all, get: get, add: add, update: update, nextNo: nextNo,
     localInvoices: localInvoices, uploadLocal: uploadLocal, clearLocal: clearLocal,

@@ -3,13 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Invoiceit · Documentation</title>
-<meta name="description" content="How Invoiceit works: accounts and roles, join codes, invoice numbers, how totals and balances are worked out, regions, and the billing timeline.">
+<title>Invoiceit documentation and API quickstart</title>
+<meta name="description" content="How Invoiceit works: invoice numbers, totals and balances, part payments, regions and currencies, billing, plus an API quickstart with curl, JavaScript and Python examples.">
+<link rel="canonical" href="https://invoiceit.site/docs.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Invoiceit">
+<meta property="og:url" content="https://invoiceit.site/docs.html">
+<meta property="og:title" content="Invoiceit documentation and API quickstart">
+<meta property="og:description" content="How Invoiceit works: invoice numbers, totals and balances, part payments, regions and currencies, billing, plus an API quickstart with curl, JavaScript and Python examples.">
+<meta property="og:image" content="https://invoiceit.site/img/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Invoiceit documentation and API quickstart">
+<meta name="twitter:description" content="How Invoiceit works: invoice numbers, totals and balances, part payments, regions and currencies, billing, plus an API quickstart with curl, JavaScript and Python examples.">
+<meta name="twitter:image" content="https://invoiceit.site/img/og-image.jpg">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Geist:wght@600;700&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/landing.css">
 <link rel="stylesheet" href="css/developers.css">
@@ -46,7 +61,7 @@
       <a href="#regions">Regions and currencies</a>
       <a href="#billing">Trial and billing</a>
       <a href="#data">Invoice data</a>
-      <a href="#api">API status</a>
+      <a href="#api">API quickstart</a>
     </nav>
 
     <div class="dev-main">
@@ -189,9 +204,85 @@ Balance   = Total − Paid   (never below 0)</code></pre>
       </section>
 
       <section class="dev-sec" id="api">
-        <h2>API status</h2>
-        <p>Invoiceit doesn't have a public API yet, and there are no API keys to request. When one exists, its reference and guides will be published on this page.</p>
-        <p>If you need to connect Invoiceit to something now, email <a href="mailto:brendanmebson@gmail.com">brendanmebson@gmail.com</a> with what you'd like to build.</p>
+        <h2>API quickstart</h2>
+        <p>The API creates and reads invoices for your business from your own systems. Base URL:</p>
+<pre><code>https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api</code></pre>
+        <p>Every endpoint, field and error is in the <a href="api.html">API reference</a> (also available as <a href="openapi.json">openapi.json</a>).</p>
+
+        <h3>1. Get a key</h3>
+        <p>In Invoiceit, the owner opens <b>Business → API</b>, names a key and taps <b>Create key</b>. Copy it straight away: it's shown once. Keep it on your server, never in a web page or app.</p>
+
+        <h3>2. Create an invoice</h3>
+        <p>Uses 1 token. Your business details and the next invoice number are filled in for you. The <code>Idempotency-Key</code> makes retries safe.</p>
+<pre><code>curl -X POST https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api/v1/invoices \
+  -H "Authorization: Bearer $INVOICEIT_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: order-10482" \
+  -d '{"customer":{"name":"Amaka Eze"},"currency":"NGN",
+       "items":[{"description":"Office desk","quantity":1,"unit_price":185000}],
+       "payments":[{"method":"bank_transfer","amount":100000}]}'</code></pre>
+<pre><code>// JavaScript (Node 18+, server side)
+const res = await fetch("https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api/v1/invoices", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.INVOICEIT_KEY}`,
+    "Content-Type": "application/json",
+    "Idempotency-Key": "order-10482",
+  },
+  body: JSON.stringify({
+    customer: { name: "Amaka Eze" },
+    currency: "NGN",
+    items: [{ description: "Office desk", quantity: 1, unit_price: 185000 }],
+    payments: [{ method: "bank_transfer", amount: 100000 }],
+  }),
+});
+const body = await res.json();
+if (!res.ok) throw new Error(`${body.error.code}: ${body.error.message}`);
+console.log(body.data.number, body.data.balance, res.headers.get("X-Tokens-Remaining"));</code></pre>
+<pre><code># Python (requests)
+import os, requests
+r = requests.post(
+    "https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api/v1/invoices",
+    headers={"Authorization": f"Bearer {os.environ['INVOICEIT_KEY']}", "Idempotency-Key": "order-10482"},
+    json={"customer": {"name": "Amaka Eze"}, "currency": "NGN",
+          "items": [{"description": "Office desk", "quantity": 1, "unit_price": 185000}],
+          "payments": [{"method": "bank_transfer", "amount": 100000}]},
+)
+data = r.json()
+if not r.ok:
+    raise RuntimeError(f"{data['error']['code']}: {data['error']['message']}")
+print(data["data"]["number"], data["data"]["balance"])</code></pre>
+        <p>The response has numbers and ISO dates, plus the worked-out <code>subtotal</code>, <code>tax</code>, <code>total</code>, <code>paid</code>, <code>balance</code> and <code>status</code> (PAID, UNPAID or PART-PAID). Fetch <code>links.html_url</code> with your key and save the response as a <code>.html</code> file to get a printable A4 page. (Supabase sends it as plain text, so a browser won't display the URL directly.)</p>
+
+        <h3>3. Check your tokens</h3>
+<pre><code>curl https://hpytwigybqjmolacnerg.supabase.co/functions/v1/invoiceit-api/v1/usage -H "Authorization: Bearer $INVOICEIT_KEY"</code></pre>
+        <p>Every response also carries an <code>X-Tokens-Remaining</code> header.</p>
+
+        <h3>4. Handle errors</h3>
+        <p>Errors always look like <code>{"error": {"code", "message", "details"}}</code>.</p>
+        <div class="table-wrap"><table class="dev-table">
+          <thead><tr><th>Status</th><th>Code</th><th>What to do</th></tr></thead>
+          <tbody>
+            <tr><td>401</td><td><code>unauthorized</code></td><td>Check the key. Revoked keys stop working at once.</td></tr>
+            <tr><td>402</td><td><code>tokens_exhausted</code></td><td>Upgrade in Business → API, or wait for the reset date in <code>details</code>.</td></tr>
+            <tr><td>402</td><td><code>subscription_inactive</code></td><td>Renew the Invoiceit subscription.</td></tr>
+            <tr><td>404</td><td><code>not_found</code></td><td>No such invoice in your business.</td></tr>
+            <tr><td>422</td><td><code>validation_failed</code>, <code>overpayment</code></td><td>Fix the fields listed in <code>details</code>. Nothing was saved and no token was used.</td></tr>
+            <tr><td>429</td><td><code>rate_limited</code></td><td>Wait for the seconds in <code>Retry-After</code>. Limit: 60 requests a minute per key.</td></tr>
+            <tr><td>500</td><td><code>internal_error</code></td><td>Retry with the same <code>Idempotency-Key</code>.</td></tr>
+          </tbody>
+        </table></div>
+        <p>PDF output isn't available yet: <code>GET /v1/invoices/{id}/pdf</code> returns 501. Use the <code>/html</code> page and print or save it as PDF.</p>
+
+        <h3 id="data-policy">What the API stores</h3>
+        <ul>
+          <li><b>Keys are hashed.</b> Invoiceit keeps only a SHA-256 hash of each key, its name and its first 8 characters. The full key is shown once and can't be recovered; revoke it and make a new one.</li>
+          <li><b>Invoices</b> created through the API are stored like any other invoice, for as long as the business exists. Each one records which key made it (<code>api:</code> and the key's first 8 characters).</li>
+          <li><b>Changes</b> to an invoice keep a copy of the data from before the change, with who made it, so the owner can see what changed.</li>
+          <li><b>A call log</b> of every request (time, endpoint, result, tokens used, invoice id) is kept for the owner's API page. Request bodies aren't logged.</li>
+          <li><b>Idempotency records</b>, which hold the response of a create request, are deleted after 24 hours.</li>
+          <li><b>Deletion.</b> If a business stays unpaid for 14 days after its access ends, everything above is permanently deleted with it.</li>
+        </ul>
         <div class="dev-next">
           <a href="developers.html"><small>← Previous</small>Overview</a>
           <a href="integrations.html"><small>Next →</small>Integrations</a>

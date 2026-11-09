@@ -1,0 +1,11 @@
+# Invoiceit
+User-agent: *
+Allow: /
+
+# Signed-in app screens (also marked noindex)
+Disallow: /new.html
+Disallow: /invoice.html
+Disallow: /business.html
+Disallow: /dashboard.html
+
+Sitemap: https://invoiceit.site/sitemap.xml

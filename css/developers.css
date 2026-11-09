@@ -96,5 +96,5 @@ a.dev-card .go{margin-top:6px;font-family:'Chivo Mono',monospace;font-size:13px;
   .dev-tabs a{padding:0 16px}
 }
 
-/* Headings in Space Grotesk, matching the landing page. */
-.dev-head h1,.dev-sec h2,.dev-sec h3,.integ h3{font-family:'Space Grotesk','Chivo',system-ui,sans-serif;font-weight:700;letter-spacing:-.03em}
+/* Headings in Geist, matching the landing page. */
+.dev-head h1,.dev-sec h2,.dev-sec h3,.integ h3{font-family:'Geist','Chivo',system-ui,sans-serif;font-weight:700;letter-spacing:-.03em}

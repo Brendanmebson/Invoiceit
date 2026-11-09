@@ -8,20 +8,228 @@
    - /ng/ → /ng, so relative links (css/, invoices.html) resolve from the site root.
    - / (or /index.html) → the visitor's detected region, e.g. /ng or /us.
      Skipped locally (no rewrites there, so /ng would 404) and when ?region= is set. */
+/* Region-specific images: <img data-rimg="hero"> becomes img/hero-<region>.webp (with data-rsrcset, also the
+   960px version), its alt comes from data-alt-<region>, and [data-rtext] elements take their text from
+   data-<region>. Images without data-rimg are the same in every region. */
+(function () {
+  var r = 'intl';
+  try { r = window.InvoiceitRegion.detect(true); } catch (e) {}
+  document.documentElement.setAttribute('data-region', r);
+  window.InvoiceitRegionImages = function (root) {
+    root = root || document;
+    [].forEach.call(root.querySelectorAll('img[data-rimg]:not([src])'), function (img) {
+      var b = 'img/' + img.getAttribute('data-rimg') + '-' + r;
+      if (img.hasAttribute('data-rsrcset')) img.srcset = b + '-960.webp 960w, ' + b + '.webp 1536w';
+      img.src = b + '.webp';
+      var alt = img.getAttribute('data-alt-' + r); if (alt) img.alt = alt;
+    });
+    [].forEach.call(root.querySelectorAll('[data-rtext]'), function (el) {
+      var t = el.getAttribute('data-' + r); if (t) el.textContent = t;
+    });
+  };
+})();
 (function () {
   var path = location.pathname, rest = location.search + location.hash;
   if (/\/(ng|us|uk|eu|intl)\/$/i.test(path)) return location.replace(path.slice(0, -1) + rest);
   var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname);
   if (local || /[?&]region=/i.test(location.search) || !/(^|\/)(index\.html)?$/.test(path)) return;
+  if (/bot|crawl|spider|slurp|mediapartners|lighthouse|preview|facebookexternalhit|whatsapp|telegram|linkedin|twitter|slack|discord|embedly|pinterest/i.test(navigator.userAgent)) return;
   location.replace(path.replace(/index\.html$/, '') + window.InvoiceitRegion.detect(false) + rest);
 })();</script>
-<title>Invoiceit · Invoices that add up</title>
-<meta name="description" content="Invoiceit: write invoices, record part payments, see who still owes, and print or share on WhatsApp from any device.">
+<title>Invoiceit: invoicing app for small businesses and shops</title>
+<meta name="description" content="Create professional invoices in under a minute, record full or part payments, and see who still owes you. Print, PDF or WhatsApp. 14-day free trial.">
+<link rel="canonical" href="https://invoiceit.site/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="application-name" content="Invoiceit">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Invoiceit">
+<meta property="og:url" content="https://invoiceit.site/">
+<meta property="og:title" content="Invoiceit: invoices that add up">
+<meta property="og:description" content="Create professional invoices in under a minute, record full or part payments, and see who still owes you. Print, PDF or WhatsApp. 14-day free trial.">
+<meta property="og:image" content="https://invoiceit.site/img/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Invoiceit: invoices that add up. A shop owner at the counter with a card machine and receipts.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="en_GB">
+<meta property="og:locale:alternate" content="en_NG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Invoiceit: invoices that add up">
+<meta name="twitter:description" content="Create professional invoices in under a minute, record full or part payments, and see who still owes you. Print, PDF or WhatsApp. 14-day free trial.">
+<meta name="twitter:image" content="https://invoiceit.site/img/og-image.jpg">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://invoiceit.site/#org",
+   "name": "Invoiceit",
+   "url": "https://invoiceit.site/",
+   "logo": "https://invoiceit.site/apple-touch-icon.png",
+   "email": "brendanmebson@gmail.com",
+   "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "brendanmebson@gmail.com"
+   }
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://invoiceit.site/#website",
+   "name": "Invoiceit",
+   "url": "https://invoiceit.site/",
+   "publisher": {
+    "@id": "https://invoiceit.site/#org"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://invoiceit.site/#app",
+   "name": "Invoiceit",
+   "url": "https://invoiceit.site/",
+   "applicationCategory": "BusinessApplication",
+   "applicationSubCategory": "Invoicing software",
+   "operatingSystem": "Web browser (Windows, macOS, Android, iOS)",
+   "description": "Invoicing for small businesses and shops: write an invoice in under a minute, record full or part payments by cash, bank transfer or card, see who still owes you, and print, save as PDF or share on WhatsApp. Owners add staff with join codes. 14-day free trial, no card needed.",
+   "image": "https://invoiceit.site/img/og-image.jpg",
+   "publisher": {
+    "@id": "https://invoiceit.site/#org"
+   },
+   "featureList": [
+    "Invoices in under a minute",
+    "Part payments and balances",
+    "Overpayment protection",
+    "Cash, bank transfer and POS payments",
+    "Print, PDF and WhatsApp sharing",
+    "Discount, delivery and VAT",
+    "Staff accounts with join codes",
+    "Invoices in NGN, USD, GBP and EUR",
+    "REST API for creating invoices"
+   ],
+   "offers": [
+    {
+     "@type": "Offer",
+     "name": "Invoiceit monthly (Nigeria)",
+     "price": "20000",
+     "priceCurrency": "NGN",
+     "category": "subscription",
+     "eligibleRegion": {
+      "@type": "Country",
+      "name": "NG"
+     },
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "20000",
+      "priceCurrency": "NGN",
+      "billingDuration": "P1M",
+      "unitText": "month"
+     }
+    },
+    {
+     "@type": "Offer",
+     "name": "Invoiceit monthly",
+     "price": "15",
+     "priceCurrency": "USD",
+     "category": "subscription",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "15",
+      "priceCurrency": "USD",
+      "billingDuration": "P1M",
+      "unitText": "month"
+     }
+    }
+   ]
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://invoiceit.site/#faq",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "Do I need a card to start the free trial?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Sign up with your email, a password and your business name, and you get 14 days free. Each email gets one trial."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How much does it cost after the trial?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "₦20,000 a month for the whole business, with as many staff as you need. The owner can pay for 1, 3, 6 or 12 months at a time, and paying early just adds the time on top of what's left."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do I pay?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Through Paystack, by card, bank transfer or USSD. The owner pays from the Business page inside the app."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is it only for shops that sell gadgets?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Invoiceit works for any business that sells goods or services: boutiques, caterers, hardware stores, print shops, repairers and more. Each line is just an item, an optional serial or note, a quantity and a price."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can Invoiceit generate invoices automatically?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes, from each sale. You enter the customer, the items and how they paid, and Invoiceit fills in your business details, the invoice number, the date, every total and the balance, ready to print or share. It doesn't yet create invoices on a schedule. Developers can also create invoices from their own systems with the Invoiceit API."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do my staff join?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The owner creates a one-time join code on the Business page and gives it to the staff member. Codes expire after 7 days. Staff can write invoices and record payments, but they can't see or change the business details."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can other businesses see my invoices?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Each business sees only its own invoices, team and join codes. This is enforced in the database itself, not just hidden in the app."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can I print invoices or send them as a PDF?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Download PDF opens your device's print dialog: print it, or choose “Save as PDF”. You can also send the summary to the customer on WhatsApp."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What happens if I stop paying?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "When paid time runs out, the business is locked until the owner pays. If it stays unpaid for 14 more days, the business and all its invoices, team and codes are permanently deleted."
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Space+Grotesk:wght@700&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Geist:wght@600;700&family=Chivo+Mono:wght@400;500;700&family=Arimo:wght@400;500&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/landing.css">
 </head>
@@ -62,8 +270,17 @@
 <main>
   <!-- HERO -->
   <section class="hero">
+    <img class="hero-scene" data-rimg="hero" data-rsrcset sizes="100vw" width="1536" height="864" fetchpriority="high"
+      alt="A shop owner checking their phone at the counter at closing time"
+      data-alt-ng="A furniture showroom owner checking his phone at the counter at closing time"
+      data-alt-us="A bike shop owner checking his phone at the counter at closing time"
+      data-alt-uk="A bookshop owner checking her phone at the counter on a rainy evening"
+      data-alt-eu="A homeware shop owner checking her phone at the counter at closing time"
+      data-alt-intl="A phone repair shop owner checking his phone at the counter at closing time">
+    <script>InvoiceitRegionImages(document.querySelector('.hero'));</script>
+    <noscript><img class="hero-scene" src="img/hero-intl.webp" width="1536" height="864" alt="A phone repair shop owner checking his phone at the counter at closing time"></noscript>
     <div class="hero-in">
-      <h1><span class="ln"><span>Every sale on paper.</span></span> <span class="ln"><span><span class="hl" data-t="hero">Every naira</span> accounted for.</span></span></h1>
+      <h1><span class="ln"><span>Every sale on paper.</span></span> <span class="ln"><span><span data-t="hero">Every naira</span> accounted for.</span></span></h1>
       <p class="lede">Invoices in under a minute. Part payments tracked. Always know who still owes you.</p>
       <div class="cta">
         <a class="btn primary" href="invoices.html#signup">Create a free account</a>
@@ -114,10 +331,43 @@
     <div class="fact"><b>0</b><span>Overpayments. The desk won't allow them</span></div>
   </section>
 
+  <!-- WHO: kinds of business, not testimonials. The people are illustrative photos, not customers. -->
+  <section class="sect who" id="who">
+    <div class="sect-head">
+      <h2>For shops, studios, cafés and every counter in between</h2>
+      <p>Anywhere a sale is paid in full, in parts, or by card, transfer and cash on the same day.</p>
+    </div>
+    <div class="who-grid">
+      <figure class="who-tall">
+        <img data-rimg="merchant" width="800" height="1000" loading="lazy" alt="A shop owner holding a printed receipt"
+          data-alt-ng="A hardware store owner behind his counter holding a printed receipt"
+          data-alt-us="A garden supply store owner holding a printed receipt"
+          data-alt-uk="A barbershop owner at the front desk holding a printed receipt"
+          data-alt-eu="A deli owner behind his counter holding a printed receipt"
+          data-alt-intl="A tailor at her cutting table holding a printed receipt">
+        <noscript><img src="img/merchant-intl.webp" width="800" height="1000" alt="A tailor at her cutting table holding a printed receipt"></noscript>
+        <figcaption data-rtext data-ng="Hardware and building supplies" data-us="Garden and farm supply" data-uk="Barbers and salons"
+          data-eu="Delis and food shops" data-intl="Tailors and alterations">Shops and services</figcaption>
+        <div class="who-card" aria-hidden="true">
+          <span class="who-card-top"><span>Invoice 00003</span><span class="badge part">PART-PAID</span></span>
+          <span class="who-card-row"><span>Left to pay</span><b data-m="left">₦ 125,000.00</b></span>
+        </div>
+      </figure>
+      <figure>
+        <img src="img/merchant-florist.webp" width="1200" height="800" loading="lazy" alt="A florist wrapping a bouquet in paper at her workbench">
+        <figcaption>Florists and studios</figcaption>
+      </figure>
+      <figure>
+        <img src="img/merchant-cafe.webp" width="1200" height="800" loading="lazy" alt="A café owner handing a takeaway cup across the counter">
+        <figcaption>Cafés and food</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- HOW IT WORKS -->
   <section class="sect" id="how">
     <div class="sect-head">
-      <h2>From sale to receipt<br>in <span class="hl">four steps</span></h2>
+      <h2>From sale to receipt in four steps</h2>
       <p>The same order the counter already works in. Nothing to learn, nothing to set up per sale.</p>
     </div>
     <ol class="steps">
@@ -160,10 +410,10 @@
   </section>
 
   <!-- AUTO: what Invoiceit fills in by itself. Keep every line true of the app
-       (no scheduled or API-made invoices yet; the FAQ says so). -->
+       (no scheduled invoices yet; the FAQ says so). -->
   <section class="sect" id="auto">
     <div class="sect-head">
-      <h2>You add the sale.<br><span class="hl">Invoiceit writes the rest.</span></h2>
+      <h2>You add the sale. Invoiceit writes the rest</h2>
       <p>Set up your business once. After that, every invoice is generated for you from what was sold.</p>
     </div>
     <div class="auto-grid">
@@ -193,7 +443,7 @@
   <!-- FEATURES -->
   <section class="sect" id="features">
     <div class="sect-head">
-      <h2>Everything the counter needs,<br><span class="hl">nothing it doesn't</span></h2>
+      <h2>Made for the counter, the shop floor and your phone</h2>
     </div>
 
     <div class="feat-grid">
@@ -246,11 +496,13 @@
   <!-- SPLIT -->
   <section class="split" id="balances">
     <div class="split-text">
-      <h2>Never lose track<br>of a <span class="hl">balance</span></h2>
+      <h2>Paid in parts, balance always right</h2>
       <p>When a customer pays in parts, each payment goes on the invoice with its method and date. The desk shows exactly what's left and won't let anyone record more than that.</p>
-      <a class="btn dark" href="invoices.html">Open Invoiceit <span aria-hidden="true">↗</span></a>
+      <a class="btn dark" href="invoices.html">Open Invoiceit</a>
     </div>
-    <div class="split-vis" aria-hidden="true">
+    <div class="split-vis">
+      <img class="split-img" src="img/receipt-stamp.webp" width="880" height="880" loading="lazy" alt="A carbon receipt book, a rubber stamp with an ink pad, and folded banknotes">
+      <div class="split-cards" aria-hidden="true">
       <div class="kv sum-card">
         <h3>SUMMARY</h3>
         <div class="r"><span>Total</span><b data-m="inv3">₦ 275,000.00</b></div>
@@ -264,35 +516,61 @@
         <div class="r"><span>POS<small>Today</small></span><b class="pending" data-m="left">₦ 125,000.00</b></div>
         <div class="limit" data-m="left" data-tpl="Up to {} (what is left to pay)">Up to ₦ 125,000.00 (what is left to pay)</div>
       </div>
+      </div>
     </div>
   </section>
 
-  <!-- REVIEWS. PLACEHOLDERS: swap in real customer quotes (with their permission) before launch.
-       Names and places follow the visitor's region (see REGIONS below). -->
+  <!-- WALL OF SMILES: a collage of shop owners and their customers. Hover (or tap/focus) a photo to blur it and
+       show how that kind of business uses Invoiceit. These are use cases, not reviews: the photos are not customers.
+       Real customer quotes (with permission) can replace the text in each .smile-note.
+       These photos are illustrative (AI-generated), not customers, so the caption doesn't claim they use Invoiceit.
+       To show real customers, replace the files in img/ (same names) and change the caption. -->
+  <section class="sect smiles" id="smiles">
+    <div class="smiles-cap">
+      <h2>Invoiceit Wall of Smiles</h2>
+      <p>Shop owners, stallholders, makers and their customers. The people Invoiceit is built for.</p>
+    </div>
+    <div class="smiles-grid">
+      <figure class="t1" tabindex="0"><img src="img/smile-vintage.webp" loading="lazy" decoding="async" alt="A vintage clothing store owner laughing with a customer as she holds up a denim jacket"><figcaption class="smile-note"><b>Vintage and clothing stores</b><span>Holds and lay-bys paid in parts, with the balance shown on every invoice.</span></figcaption></figure>
+      <figure class="t2" tabindex="0"><img src="img/merchant-us.webp" loading="lazy" decoding="async" alt="A garden supply store owner holding a printed receipt"><figcaption class="smile-note"><b>Garden and farm supply</b><span>Bulk orders on account. Record each payment as it comes in.</span></figcaption></figure>
+      <figure class="t3" tabindex="0"><img src="img/smile-bakery.webp" loading="lazy" decoding="async" alt="A baker and a customer laughing over a bag of bread"><figcaption class="smile-note"><b>Bakeries</b><span>Cake and catering orders with a deposit up front and the rest on collection.</span></figcaption></figure>
+      <figure class="t4" tabindex="0"><img src="img/merchant-eu.webp" loading="lazy" decoding="async" alt="A deli owner behind his counter holding a printed receipt"><figcaption class="smile-note"><b>Delis and food shops</b><span>Party platters and trade customers, invoiced and tracked in one list.</span></figcaption></figure>
+      <figure class="t5" tabindex="0"><img src="img/smile-print.webp" loading="lazy" decoding="async" alt="A print shop owner showing a happy client a fresh poster proof"><figcaption class="smile-note"><b>Print shops</b><span>Take a deposit, print the job, then collect the balance. Every payment on one invoice.</span></figcaption></figure>
+      <figure class="t6" tabindex="0"><img src="img/smile-garage.webp" loading="lazy" decoding="async" alt="A mechanic handing a printed invoice to a smiling customer"><figcaption class="smile-note"><b>Garages and repairs</b><span>Parts and labour as separate lines, paid by card, transfer or cash.</span></figcaption></figure>
+      <figure class="t7" tabindex="0"><img src="img/smile-salon.webp" loading="lazy" decoding="async" alt="A salon client smiling as she pays by card at the desk"><figcaption class="smile-note"><b>Salons and barbers</b><span>Packages paid in instalments, with what is left always visible.</span></figcaption></figure>
+      <figure class="t8" tabindex="0"><img src="img/smile-receipt.webp" loading="lazy" decoding="async" alt="A receipt passed across a shop counter beside a card machine"><figcaption class="smile-note"><b>Any counter</b><span>A printed invoice or PDF the customer can keep, from your phone or the shop laptop.</span></figcaption></figure>
+      <figure class="t9" tabindex="0"><img src="img/smile-pottery.webp" loading="lazy" decoding="async" alt="A potter showing a customer a freshly glazed bowl"><figcaption class="smile-note"><b>Makers and studios</b><span>Commissions with a deposit, and a clear invoice when the piece is ready.</span></figcaption></figure>
+      <figure class="t10" tabindex="0"><img src="img/smile-foodtruck.webp" loading="lazy" decoding="async" alt="A food truck owner handing a taco to a customer"><figcaption class="smile-note"><b>Food trucks and events</b><span>Event bookings with a deposit, sent straight to the customer on WhatsApp.</span></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- CUSTOMER REVIEWS. Hidden until it holds at least one REAL review, used with the customer's permission.
+       To publish: add one <figure class="rv"> per review inside .rv-grid (copy the example below), fill in the
+       quote, name, business and city, then delete the word "hidden" on the <section> line.
+       Example (keep it inside these comment marks; copy it out below to use it):
+         <figure class="rv">
+           <blockquote>“The customer's own words, as they said or wrote them.”</blockquote>
+           <figcaption><span class="rv-av" aria-hidden="true">AB</span><span><b class="rv-name">Their name</b><span class="rv-biz">Their business, City</span></span></figcaption>
+         </figure>
+       Never publish invented quotes: fake testimonials are illegal in the US, UK and EU. -->
   <section class="sect" id="reviews">
     <div class="sect-head">
-      <h2>Businesses that<br><span class="hl">stopped guessing</span></h2>
+      <h2>What customers say</h2>
+      <p>From shop owners using Invoiceit at their counters.</p>
     </div>
     <div class="rv-grid">
-      <figure class="rv" data-r="0">
-        <blockquote>“Customers pay me in two or three parts. Now I open their invoice and the balance is right there. No more arguments about what's left.”</blockquote>
-        <figcaption><span class="rv-av" aria-hidden="true">FO</span><span><b class="rv-name">Funmilayo Okafor</b><span class="rv-biz">Boutique owner, Lagos</span></span></figcaption>
-      </figure>
-      <figure class="rv" data-r="1">
-        <blockquote>“I send the invoice on WhatsApp before the event and record each deposit as it comes in. My staff use it on their phones too.”</blockquote>
-        <figcaption><span class="rv-av" aria-hidden="true">IM</span><span><b class="rv-name">Ibrahim Musa</b><span class="rv-biz">Catering, Abuja</span></span></figcaption>
-      </figure>
-      <figure class="rv" data-r="2">
-        <blockquote>“Two of us sell at the same time and the invoice numbers never clash. At the end of the day I know exactly who still owes.”</blockquote>
-        <figcaption><span class="rv-av" aria-hidden="true">CO</span><span><b class="rv-name">Chinedu Obi</b><span class="rv-biz">Building supplies, Onitsha</span></span></figcaption>
-      </figure>
+      <!-- Real reviews go here, one <figure class="rv"> each (see the example in the comment above). -->
+      <a class="rv rv-invite" href="mailto:brendanmebson@gmail.com?subject=My%20Invoiceit%20review">
+        <blockquote>Using Invoiceit at your counter? Tell us what it changed for your business, and your words could be the first review here.</blockquote>
+        <span class="rv-invite-cta">Share your experience</span>
+      </a>
     </div>
   </section>
 
   <!-- PRICING -->
   <section class="sect pricing" id="pricing">
     <div class="sect-head">
-      <h2>One plan.<br><span class="hl">14 days free.</span></h2>
+      <h2>One plan, 14 days free</h2>
       <p>Everything in Invoiceit, for the whole team. Try it free, then pay monthly with Paystack.</p>
     </div>
     <div class="price-card">
@@ -308,7 +586,7 @@
         <li><span class="tick" aria-hidden="true"></span>Works on laptop and phone</li>
         <li><span class="tick" aria-hidden="true"></span><span data-t="payWays">Pay by card, bank transfer or USSD via Paystack</span></li>
       </ul>
-      <a class="btn primary" href="invoices.html#signup">Start your free trial <span aria-hidden="true">↗</span></a>
+      <a class="btn primary" href="invoices.html#signup">Start your free trial</a>
       <p class="price-fine">No card needed to start. After 14 days the owner can subscribe from inside the app. Businesses that stay unpaid are locked, then permanently deleted 14 days later.</p>
     </div>
   </section>
@@ -316,7 +594,7 @@
   <!-- FAQ. Every answer here is true of the app today (see README); keep it that way. -->
   <section class="sect" id="faq">
     <div class="sect-head">
-      <h2>Questions,<br><span class="hl">answered</span></h2>
+      <h2>Common questions</h2>
     </div>
     <div class="faq">
       <details>
@@ -337,7 +615,7 @@
       </details>
       <details>
         <summary>Can Invoiceit generate invoices automatically?</summary>
-        <p>Yes, from each sale. You enter the customer, the items and how they paid, and Invoiceit fills in your business details, the invoice number, the date, every total and the balance, ready to print or share. It doesn't yet create invoices on a schedule or from other systems.</p>
+        <p>Yes, from each sale. You enter the customer, the items and how they paid, and Invoiceit fills in your business details, the invoice number, the date, every total and the balance, ready to print or share. It doesn't yet create invoices on a schedule. Developers can also create invoices from their own systems with the <a href="docs.html#api">Invoiceit API</a>.</p>
       </details>
       <details>
         <summary>How do my staff join?</summary>
@@ -360,9 +638,9 @@
 
   <!-- CTA -->
   <section class="cta-band">
-    <h2>Ready for the <span class="hl">next sale?</span></h2>
+    <h2>Put your next sale on Invoiceit</h2>
     <p data-t="ctaLine">14 days free, then ₦20,000 a month. Write your first invoice in minutes.</p>
-    <div class="cta"><a class="btn primary" href="invoices.html#signup">Start your free trial <span aria-hidden="true">↗</span></a><a class="btn" href="invoices.html">Sign in</a></div>
+    <div class="cta"><a class="btn primary" href="invoices.html#signup">Start your free trial</a><a class="btn" href="invoices.html">Sign in</a></div>
   </section>
 </main>
 
@@ -384,6 +662,8 @@
 </footer>
 
 <script>
+InvoiceitRegionImages();
+
 /* Local sample data: names, prices and currency in the previews follow the visitor's region,
    worked out from the browser's time zone (no IP lookup). The HTML holds the Nigerian version,
    so Nigeria, and anyone whose region can't be told, sees the page as written.
@@ -448,6 +728,29 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && top.classList.contains('open')) { set(false); btn.focus(); } });
 })();
 
+/* Reviews marquee: with 3 or more real reviews, the cards scroll sideways in a slow loop (a copy of the row
+   follows the original so it never runs out). Pauses on hover and keyboard focus; static for reduced motion.
+   With fewer reviews the cards just sit in their grid. */
+(function () {
+  var grid = document.querySelector('#reviews .rv-grid'); if (!grid) return;
+  var cards = [].slice.call(grid.querySelectorAll('.rv:not(.rv-invite)'));
+  if (cards.length < 3) return;
+  var invite = grid.querySelector('.rv-invite'); if (invite) grid.parentNode.appendChild(invite);
+  var track = document.createElement('div'); track.className = 'rv-track';
+  cards.forEach(function (c) { track.appendChild(c); });
+  cards.forEach(function (c) { var d = c.cloneNode(true); d.setAttribute('aria-hidden', 'true'); track.appendChild(d); });
+  grid.classList.add('rv-marquee'); grid.appendChild(track);
+  track.style.setProperty('--rv-dur', Math.max(30, cards.length * 9) + 's');
+})();
+
+/* Header: a soft shadow once the page has scrolled under it. */
+(function () {
+  var top = document.querySelector('.lp-top'); if (!top) return;
+  var on = false;
+  function check() { var s = window.scrollY > 8; if (s !== on) { on = s; top.classList.toggle('scrolled', s); } }
+  window.addEventListener('scroll', check, { passive: true }); check();
+})();
+
 /* Nav dropdowns (Why Invoiceit, Developers): click to open, one at a time; outside click or Escape closes. */
 (function () {
   var dds = [].slice.call(document.querySelectorAll('.dd'));
@@ -499,116 +802,6 @@
   btn.addEventListener('click', function () { set(list.hidden); });
   document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) set(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !list.hidden) { set(false); btn.focus(); } });
-})();
-
-/* Hero: moving the pointer leaves water ripples on the dark background (behind the text and the
-   invoice preview). A small height-field simulation, drawn at low resolution and stretched.
-   Sleeps when the water is calm or the hero is off screen; skipped for reduced motion. */
-(function () {
-  if (!window.matchMedia || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  var hero = document.querySelector('.hero');
-  if (!hero) return;
-  var cv = document.createElement('canvas');
-  cv.className = 'hero-water'; cv.setAttribute('aria-hidden', 'true');
-  hero.insertBefore(cv, hero.firstChild);
-  var ctx = cv.getContext('2d');
-  // The background grid is redrawn here (instead of the CSS gradient) so its lines bend with the waves.
-  var gcv = document.createElement('canvas');
-  gcv.className = 'hero-water'; gcv.setAttribute('aria-hidden', 'true');
-  hero.insertBefore(gcv, cv);
-  var gctx = gcv.getContext('2d');
-  hero.classList.add('grid-live');
-  var CELL = 6, DAMP = 0.965, BEND = 0.9, MAXBEND = 14, SEG = 6;
-  var w, h, cur, prev, img, raf = 0, calm = 0, visible = true, last = null, W, H, GAP;
-
-  function size() {
-    W = hero.clientWidth; H = hero.clientHeight;
-    GAP = matchMedia('(max-width:760px)').matches ? 40 : 56;
-    w = Math.ceil(W / CELL) + 2; h = Math.ceil(H / CELL) + 2;
-    cv.width = w; cv.height = h;
-    var dpr = Math.min(2, window.devicePixelRatio || 1);
-    gcv.width = Math.round(W * dpr); gcv.height = Math.round(H * dpr);
-    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    cur = new Float32Array(w * h); prev = new Float32Array(w * h);
-    img = ctx.createImageData(w, h);
-    grid(false);
-  }
-  // Height of the water at a fractional cell position (bilinear).
-  function height(fx, fy) {
-    if (fx < 0) fx = 0; else if (fx > w - 1.001) fx = w - 1.001;
-    if (fy < 0) fy = 0; else if (fy > h - 1.001) fy = h - 1.001;
-    var x0 = fx | 0, y0 = fy | 0, tx = fx - x0, ty = fy - y0, i = y0 * w + x0;
-    var a = cur[i] + (cur[i + 1] - cur[i]) * tx, b = cur[i + w] + (cur[i + w + 1] - cur[i + w]) * tx;
-    return a + (b - a) * ty;
-  }
-  // Soft limit: small ripples still show a few px of bend, big ones level off near MAXBEND.
-  function clampBend(v) { v *= BEND; return v / (1 + (v < 0 ? -v : v) / MAXBEND); }
-  // Draw the grid, each point pushed along the slope of the water beneath it.
-  function grid(bend) {
-    gctx.clearRect(0, 0, W, H);
-    gctx.strokeStyle = 'rgba(255,255,255,.045)'; gctx.lineWidth = 1;
-    gctx.beginPath();
-    var sx = w / W, sy = h / H, x, y, fx, fy;
-    function pt(px, py, first) {
-      if (bend) {
-        fx = px * sx; fy = py * sy;
-        px += clampBend(height(fx - 1, fy) - height(fx + 1, fy));
-        py += clampBend(height(fx, fy - 1) - height(fx, fy + 1));
-      }
-      if (first) gctx.moveTo(px, py); else gctx.lineTo(px, py);
-    }
-    for (x = 0.5; x < W; x += GAP) { if (bend) { for (y = 0; y <= H + SEG; y += SEG) pt(x, y, y === 0); } else { gctx.moveTo(x, 0); gctx.lineTo(x, H); } }
-    for (y = 0.5; y < H; y += GAP) { if (bend) { for (x = 0; x <= W + SEG; x += SEG) pt(x, y, x === 0); } else { gctx.moveTo(0, y); gctx.lineTo(W, y); } }
-    gctx.stroke();
-  }
-  function drop(x, y, force) {
-    var cx = Math.round(x / hero.clientWidth * w), cy = Math.round(y / hero.clientHeight * h);
-    for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) {
-      var px = cx + dx, py = cy + dy, d = dx * dx + dy * dy;
-      if (px < 1 || py < 1 || px >= w - 1 || py >= h - 1 || d > 4) continue;
-      cur[py * w + px] += force * (1 - d / 5);
-    }
-    wake();
-  }
-  function step() {
-    var energy = 0, d = img.data, i, x, y;
-    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
-      i = y * w + x;
-      var v = ((cur[i - 1] + cur[i + 1] + cur[i - w] + cur[i + w]) * 0.5 - prev[i]) * DAMP;
-      prev[i] = v; energy += v < 0 ? -v : v;
-    }
-    var t = cur; cur = prev; prev = t;
-    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
-      i = y * w + x;
-      var s = (cur[i - 1] - cur[i + 1]) + (cur[i - w] - cur[i + w]), a = s * 0.55, p = i * 4;
-      if (a > 0) { d[p] = 235; d[p + 1] = 240; d[p + 2] = 255; d[p + 3] = a > 70 ? 70 : a; }   // light side of a wave
-      else { d[p] = 0; d[p + 1] = 0; d[p + 2] = 0; d[p + 3] = -a > 60 ? 60 : -a; }              // shadow side
-    }
-    ctx.putImageData(img, 0, 0);
-    return energy;
-  }
-  function loop() {
-    raf = 0;
-    if (!visible) return;
-    if (step() < w * h * 0.004) { if (++calm > 30) { ctx.clearRect(0, 0, w, h); grid(false); return; } } else calm = 0;
-    grid(true);
-    raf = requestAnimationFrame(loop);
-  }
-  function wake() { calm = 0; if (!raf && visible) raf = requestAnimationFrame(loop); }
-
-  hero.addEventListener('pointermove', function (e) {
-    var r = hero.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-    if (last) {
-      var dist = Math.hypot(x - last.x, y - last.y), n = Math.min(6, Math.ceil(dist / (CELL * 2)));
-      var force = Math.min(260, 60 + dist * 6) / n;
-      for (var k = 1; k <= n; k++) drop(last.x + (x - last.x) * k / n, last.y + (y - last.y) * k / n, force);
-    }
-    last = { x: x, y: y };
-  });
-  hero.addEventListener('pointerleave', function () { last = null; });
-  new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) wake(); }).observe(hero);
-  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
-  size();
 })();
 
 /* How it works, on a loop: steps 01 and 03 have their card text typed out; steps 02 and 04
