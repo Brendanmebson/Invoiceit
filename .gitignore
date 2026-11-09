@@ -1,0 +1,5 @@
+# Supabase CLI local cache (project ref, versions, pooler address)
+supabase/.temp/
+
+# macOS
+.DS_Store
