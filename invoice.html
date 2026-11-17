@@ -65,6 +65,7 @@
           '<button class="btn" id="wa">Share on WhatsApp</button>' +
           '<div class="two"><button class="btn" id="prt">Print</button><button class="btn" id="copy">Copy link</button></div>' +
           '<a class="btn" href="new.html?dup=' + encodeURIComponent(inv.id) + '">Duplicate invoice</a>' +
+          (S.isOwner() ? '<button class="btn danger" id="del">Delete invoice</button>' : '') +
         '</div>' +
         '<div class="kv"><h3>SUMMARY</h3>' +
           (inv.createdBy ? '<div class="r"><span>Created by</span><b class="by-email">' + S.esc(inv.createdBy) + '</b></div>' : '') +
@@ -87,6 +88,14 @@
         '</div>' +
       '</aside>';
 
+    if (document.getElementById('del')) document.getElementById('del').onclick = function () {
+      var msg = 'Delete invoice ' + inv.no + ' for ' + (inv.cust || 'this customer') + '?' +
+        (c.balance > 0 ? '\n\n' + m(c.balance) + ' is still owed on it.' : '') + '\n\nIt will disappear for everyone. Its number will not be used again.';
+      if (!confirm(msg)) return;
+      var btn = this; btn.disabled = true; btn.textContent = 'Deleting…';
+      S.remove(inv.id).then(function () { location.replace('invoices.html#deleted'); })
+        .catch(function (err) { btn.disabled = false; btn.textContent = 'Delete invoice'; toast('Not deleted. ' + err.message); });
+    };
     document.getElementById('pdf').onclick = document.getElementById('prt').onclick = function () { window.print(); };
     document.getElementById('copy').onclick = function () {
       var url = location.href;
