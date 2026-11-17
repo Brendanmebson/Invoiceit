@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Geist:wght@600&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700;900&family=Geist:wght@600&family=Chivo+Mono:wght@400;500;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/refresh.css">
 </head>
@@ -39,9 +39,39 @@
     <h2><i>02</i>Details on every invoice</h2>
     <p class="hint" id="detailsHint">These print at the top of new invoices. Invoices already saved keep the details they were made with.</p>
     <form id="details" class="biz-form">
+      <div class="f logo-field">
+        <span class="cap-l">Logo</span>
+        <div class="logo-row">
+          <div class="logo-box" id="logoBox"><span>No logo</span></div>
+          <div class="logo-acts">
+            <label class="btn dark" for="logoFile" id="logoPick">Upload logo</label>
+            <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" hidden>
+            <button class="btn" type="button" id="logoRemove" hidden>Remove</button>
+            <span class="hint">PNG, JPG or WebP. A logo on a clear or white background prints best.</span>
+          </div>
+        </div>
+      </div>
       <label class="f">Business name<input id="bName" maxlength="80" required placeholder="e.g. Adebayo Ventures"></label>
+      <label class="f">Line under the name (optional)<input id="bTag" maxlength="200" placeholder="e.g. Dealers in all kinds of phones, handsets &amp; general merchants"></label>
       <label class="f">Shop address<input id="bAddr" placeholder="Shop no., plaza, street, area, city"></label>
       <label class="f">Phone numbers<input id="bPhone" class="mono" placeholder="0800 000 0000"></label>
+
+      <fieldset class="name-style">
+        <legend class="cap-l">How the business name looks</legend>
+        <div class="font-grid" id="fontGrid" role="radiogroup" aria-label="Font"></div>
+        <div class="style-row">
+          <div class="seg" id="sizeSeg" role="group" aria-label="Size"></div>
+          <div class="seg" role="group" aria-label="Style">
+            <button type="button" id="stBold" aria-pressed="false"><b>B</b>&nbsp;Bold</button><button type="button" id="stItalic" aria-pressed="false"><i>I</i>&nbsp;Italic</button><button type="button" id="stCaps" aria-pressed="true">CAPITALS</button>
+          </div>
+          <label class="colour">Colour<input type="color" id="stColor" value="#111111"></label>
+        </div>
+      </fieldset>
+
+      <div class="head-preview">
+        <span class="cap-l">Preview: top of the invoice</span>
+        <div class="paper"><div class="in-pad" id="headPreview"></div></div>
+      </div>
       <button class="btn primary" type="submit" id="bSave">Save details</button>
     </form>
   </section>
@@ -100,7 +130,9 @@
     var b = S.business(), owner = S.isOwner();
     if (!owner) { location.replace('invoices.html'); return; } // staff just use invoices
     showPlan();
-    $('bName').value = b.name; $('bAddr').value = b.addr; $('bPhone').value = b.phone;
+    $('bName').value = b.name; $('bTag').value = b.tagline || ''; $('bAddr').value = b.addr; $('bPhone').value = b.phone;
+    brand.logo = b.logo_url || ''; brand.style = S.titleStyle(b.title_style);
+    setupBranding();
     $('addSec').hidden = false;
     loadTeam();
     $('apiSec').hidden = false;
@@ -124,12 +156,60 @@
     S.pay(+$('months').value).catch(function (err) { btn.disabled = false; btn.textContent = 'Pay with Paystack'; toast(err.message); });
   };
 
+  /* ---------- Branding: logo, line under the name, and how the name looks ---------- */
+  var brand = { logo: '', style: S.titleStyle() };
+  function drawBrand() {
+    var st = brand.style;
+    $('logoBox').innerHTML = brand.logo ? '<img src="' + S.esc(brand.logo) + '" alt="Current logo">' : '<span>No logo</span>';
+    $('logoRemove').hidden = !brand.logo;
+    $('logoPick').textContent = brand.logo ? 'Change logo' : 'Upload logo';
+    [].forEach.call(document.querySelectorAll('#fontGrid button'), function (b) { b.setAttribute('aria-checked', b.dataset.font === st.font ? 'true' : 'false'); });
+    [].forEach.call(document.querySelectorAll('#sizeSeg button'), function (b) { b.setAttribute('aria-pressed', b.dataset.size === st.size ? 'true' : 'false'); });
+    $('stBold').setAttribute('aria-pressed', String(st.bold)); $('stItalic').setAttribute('aria-pressed', String(st.italic)); $('stCaps').setAttribute('aria-pressed', String(st.caps));
+    $('stColor').value = st.color;
+    var sample = $('bName').value.trim() || 'Your business';
+    [].forEach.call(document.querySelectorAll('#fontGrid .fs'), function (el) { el.textContent = sample; });
+    $('headPreview').innerHTML = S.paperHead({ name: sample, tagline: $('bTag').value, addr: $('bAddr').value, phone: $('bPhone').value, logo: brand.logo, titleStyle: st }) +
+      '<div class="p-title">' + S.esc(S.DEFAULT_TITLE) + '</div>';
+  }
+  function setupBranding() {
+    // Every font, so each choice shows in its own lettering.
+    Object.keys(S.TITLE_FONTS).forEach(S.loadFont);
+    $('fontGrid').innerHTML = Object.keys(S.TITLE_FONTS).map(function (k) {
+      var f = S.TITLE_FONTS[k];
+      return '<button type="button" role="radio" data-font="' + k + '"><span class="fs" style="font-family:' + S.esc(f.css) + '"></span><small>' + S.esc(f.label) + '</small></button>';
+    }).join('');
+    $('sizeSeg').innerHTML = Object.keys(S.TITLE_SIZES).map(function (k) { return '<button type="button" data-size="' + k + '">' + S.esc(S.TITLE_SIZES[k]) + '</button>'; }).join('');
+    $('fontGrid').onclick = function (e) { var b = e.target.closest('button'); if (b) { brand.style.font = b.dataset.font; drawBrand(); } };
+    $('sizeSeg').onclick = function (e) { var b = e.target.closest('button'); if (b) { brand.style.size = b.dataset.size; drawBrand(); } };
+    $('stBold').onclick = function () { brand.style.bold = !brand.style.bold; drawBrand(); };
+    $('stItalic').onclick = function () { brand.style.italic = !brand.style.italic; drawBrand(); };
+    $('stCaps').onclick = function () { brand.style.caps = !brand.style.caps; drawBrand(); };
+    $('stColor').oninput = function () { brand.style.color = this.value; drawBrand(); };
+    ['bName', 'bTag', 'bAddr', 'bPhone'].forEach(function (id) { $(id).addEventListener('input', drawBrand); });
+    // Logo changes save straight away, so a forgotten Save never loses an upload.
+    $('logoFile').onchange = function () {
+      var file = this.files[0]; this.value = ''; if (!file) return;
+      var pick = $('logoPick'); pick.textContent = 'Uploading…'; pick.style.pointerEvents = 'none';
+      S.uploadLogo(file).then(function (url) { return S.updateBusiness({ logo_url: url }); })
+        .then(function (biz) { brand.logo = biz.logo_url || ''; toast('Logo saved. New invoices will show it.'); })
+        .catch(function (err) { toast('Logo not saved. ' + err.message); })
+        .then(function () { pick.style.pointerEvents = ''; drawBrand(); });
+    };
+    $('logoRemove').onclick = function () {
+      var btn = this; btn.disabled = true;
+      S.updateBusiness({ logo_url: null }).then(function () { brand.logo = ''; toast('Logo removed from new invoices.'); })
+        .catch(function (err) { toast(err.message); }).then(function () { btn.disabled = false; drawBrand(); });
+    };
+    drawBrand();
+  }
+
   $('details').onsubmit = function (e) {
     e.preventDefault();
     var name = $('bName').value.trim();
     if (!name) { toast('Enter the business name.'); return; }
     var btn = $('bSave'); btn.disabled = true; btn.textContent = 'Saving…';
-    S.updateBusiness({ name: name, addr: $('bAddr').value.trim(), phone: $('bPhone').value.trim() }).then(function (biz) {
+    S.updateBusiness({ name: name, tagline: $('bTag').value.trim(), addr: $('bAddr').value.trim(), phone: $('bPhone').value.trim(), title_style: S.titleStyle(brand.style) }).then(function (biz) {
       [].forEach.call(document.querySelectorAll('.topbar .brand .biz'), function (el) { el.textContent = biz.name; });
       toast('Saved.');
     }).catch(function (err) { toast('Not saved. ' + err.message); })

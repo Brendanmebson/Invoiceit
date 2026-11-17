@@ -614,6 +614,13 @@
           "sales_by": {
             "type": "string",
             "maxLength": 100
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "default": "Cash Sales Invoice",
+            "description": "What the invoice is for, printed under the business details."
           }
         }
       },
@@ -662,6 +669,10 @@
               "UNPAID",
               "PART-PAID"
             ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Printed title, e.g. Cash Sales Invoice."
           },
           "currency": {
             "type": "string"
@@ -787,6 +798,19 @@
               },
               "phone": {
                 "type": "string"
+              },
+              "tagline": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "logo_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
               }
             }
           },

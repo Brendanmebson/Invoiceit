@@ -32,6 +32,8 @@
     <div class="sec">
       <h2><i>01</i>Invoice</h2>
       <div class="from" id="from"></div>
+      <label class="f">Invoice title (what it is for)<input data-k="title" maxlength="60" list="titleList" placeholder="Cash Sales Invoice"></label>
+      <datalist id="titleList"></datalist>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
         <label class="f">Invoice no. (set on save)<input class="mono" data-k="no" readonly tabindex="-1" style="background:var(--field)"></label>
         <label class="f">Date and time<input class="mono" data-k="date"></label>
@@ -114,18 +116,18 @@
   }
   // Owner filled in the pop-up while this page was open: use the new details.
   document.addEventListener('invoiceit:business', function (e) {
-    if (!inv) return; inv.store = { name: e.detail.name, addr: e.detail.addr, phone: e.detail.phone }; showFrom(); preview();
+    if (!inv) return; inv.store = S.storeFrom(e.detail); showFrom(); preview();
   });
 
   function start(dup, st, no) {
   showFrom();
   if (dup) {
     inv = JSON.parse(JSON.stringify(dup));
-    delete inv.id; delete inv.createdBy; inv.store = { name: S.business().name, addr: S.business().addr, phone: S.business().phone }; inv.no = no; inv.date = S.nowStr(); inv.payments = [];
+    delete inv.id; delete inv.createdBy; inv.store = S.storeInfo(); inv.title = inv.title || S.DEFAULT_TITLE; inv.no = no; inv.date = S.nowStr(); inv.payments = [];
   } else {
     inv = {
-      no: no, date: S.nowStr(), cust: '', phone: '', salesBy: st.salesBy,
-      store: { name: S.business().name, addr: st.addr, phone: st.phone }, currency: S.currency(),
+      no: no, title: S.DEFAULT_TITLE, date: S.nowStr(), cust: '', phone: '', salesBy: st.salesBy,
+      store: S.storeInfo(), currency: S.currency(),
       items: [{ desc: '', serial: '', qty: '', price: '' }],
       payments: [{ method: '', amount: '', date: S.today(), auto: true }],
       discount: '', delivery: '', tax: '', notes: ''
@@ -152,7 +154,7 @@
       '<p class="msg">' + S.esc(st.text) + '</p>' +
       (c.balance > 0 && c.paid > 0 ? '<button class="btn ghost" type="button" id="payRest">+ Add payment for the remaining ' + m(c.balance) + '</button>' : '');
   }
-  function preview() { followTotal(); renderSettle(); document.getElementById('preview').innerHTML = S.paper(inv); }
+  function preview() { followTotal(); renderSettle(); S.loadFont(inv.store.titleStyle && inv.store.titleStyle.font); document.getElementById('preview').innerHTML = S.paper(inv); }
 
   function renderItems() {
     document.getElementById('items').innerHTML = inv.items.map(function (it, i) {
@@ -181,6 +183,7 @@
     });
   }
 
+  document.getElementById('titleList').innerHTML = S.TITLE_SUGGESTIONS.map(function (t) { return '<option value="' + S.esc(t) + '">'; }).join('');
   // fill simple fields
   [].forEach.call(document.querySelectorAll('[data-k]'), function (el) { el.value = getPath(el.dataset.k); });
   renderItems(); renderPays(); syncCurrency(); preview();
@@ -211,6 +214,7 @@
     inv.items = inv.items.filter(function (i) { return String(i.desc).trim() || S.num(i.price) > 0; });
     inv.payments = inv.payments.filter(function (p) { return S.num(p.amount) !== 0 || String(p.method).trim(); });
     renderItems(); renderPays(); syncCurrency(); preview();
+    inv.title = String(inv.title || '').trim() || S.DEFAULT_TITLE; document.querySelector('[data-k="title"]').value = inv.title;
     if (!String(inv.cust).trim()) { toast('Enter the customer name.'); document.querySelector('[data-k="cust"]').focus(); return; }
     if (!inv.items.length) { inv.items.push({ desc: '', serial: '', qty: '', price: '' }); renderItems(); preview(); toast('Add at least one item.'); return; }
     var bad = inv.items.filter(function (i) { return !String(i.desc).trim() || S.num(i.price) <= 0; })[0];

@@ -1,7 +1,7 @@
 // Converts between the clean API shape (numbers, ISO dates, snake_case) and the jsonb blob the web app
 // stores in invoiceit_invoices.data (strings, "dd-mm-yyyy hh:mm AM/PM", the app's field names).
 // Pure functions, no imports beyond ./invoice.ts, so they can be tested with Node.
-import { calc, type InvoiceData } from "./invoice.ts";
+import { calc, DEFAULT_TITLE, titleStyle, type InvoiceData } from "./invoice.ts";
 
 export type ApiInvoiceInput = {
   customer: { name: string; phone?: string };
@@ -14,8 +14,12 @@ export type ApiInvoiceInput = {
   payments: { method: "cash" | "bank_transfer" | "pos"; amount: number; date?: string }[];
   notes?: string;
   sales_by?: string;
+  title?: string;
 };
-export type Business = { id: string; name: string; addr: string; phone: string; region: string };
+export type Business = {
+  id: string; name: string; addr: string; phone: string; region: string;
+  tagline?: string; logo_url?: string | null; title_style?: unknown;
+};
 export type InvoiceRow = { id: string; no: string; data: InvoiceData; created_at: string; updated_at: string };
 
 const METHOD_TO_APP: Record<string, string> = { cash: "Cash", bank_transfer: "Bank Transfer", pos: "POS" };
@@ -81,7 +85,11 @@ export function toBlob(input: ApiInvoiceInput, business: Business, keyPrefix: st
     cust: input.customer.name,
     phone: input.customer.phone ?? "",
     salesBy: input.sales_by ?? "",
-    store: { name: business.name, addr: business.addr, phone: business.phone },
+    title: input.title || DEFAULT_TITLE,
+    store: {
+      name: business.name, addr: business.addr, phone: business.phone,
+      tagline: business.tagline ?? "", logo: business.logo_url ?? "", titleStyle: titleStyle(business.title_style),
+    },
     currency: input.currency,
     items: input.items.map((i) => ({ desc: i.description, serial: i.serial ?? "", qty: numStr(i.quantity), price: numStr(i.unit_price) })),
     payments: input.payments.map((p) => ({
@@ -111,6 +119,7 @@ export function fromRow(row: InvoiceRow, links: { app_url: string; html_url: str
     id: row.id,
     number: row.no,
     status: c.status,
+    title: d.title || "Invoice",
     currency: d.currency ?? null,
     issue_date: isoFromApp(d.date, true),
     customer: { name: d.cust ?? "", phone: d.phone || null },
@@ -137,7 +146,10 @@ export function fromRow(row: InvoiceRow, links: { app_url: string; html_url: str
     notes: d.notes || null,
     sales_by: d.salesBy || null,
     created_by: d.createdBy ?? null,
-    business: { name: d.store?.name ?? "", address: d.store?.addr ?? "", phone: d.store?.phone ?? "" },
+    business: {
+      name: d.store?.name ?? "", address: d.store?.addr ?? "", phone: d.store?.phone ?? "",
+      tagline: d.store?.tagline || null, logo_url: d.store?.logo || null,
+    },
     created_at: row.created_at,
     updated_at: row.updated_at,
     links,

@@ -50,6 +50,7 @@
 
   function render() {
     var c = S.calc(inv), cur = inv.currency, m = function (n) { return S.money(n, cur); };
+    S.loadFont(inv.store && inv.store.titleStyle && inv.store.titleStyle.font);
     var pays = inv.payments.map(function (p) {
       return '<div class="r"><span>' + S.esc(p.method) + '<small>' + S.esc(p.date) + '</small></span><b>' + m(S.num(p.amount)) + '</b></div>';
     }).join('') || '<div class="r"><span>No payments yet</span></div>';
@@ -92,7 +93,7 @@
       (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { toast('Link copied. Staff can open it on any device after signing in.'); }, function () { toast('Copy the address from the browser bar.'); });
     };
     document.getElementById('wa').onclick = function () {
-      var text = inv.store.name + ' · Invoice ' + inv.no + '\nCustomer: ' + inv.cust + '\nTotal: ' + m(c.total) + '\nPaid: ' + m(c.paid) + (c.balance > 0 ? '\nLeft to pay: ' + m(c.balance) : '') + (c.change > 0 ? '\nChange: ' + m(c.change) : '') + '\nStatus: ' + c.status;
+      var text = inv.store.name + ' · ' + (inv.title || 'Invoice') + ' ' + inv.no + '\nCustomer: ' + inv.cust + '\nTotal: ' + m(c.total) + '\nPaid: ' + m(c.paid) + (c.balance > 0 ? '\nLeft to pay: ' + m(c.balance) : '') + (c.change > 0 ? '\nChange: ' + m(c.change) : '') + '\nStatus: ' + c.status;
       window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
     };
     if (c.balance <= 0) return;

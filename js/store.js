@@ -311,9 +311,35 @@
     return Promise.resolve();
   }
   function updateBusiness(fields) {
-    return db.from('invoiceit_businesses').update(fields).eq('id', business().id).select('id,name,addr,phone').single().then(function (r) {
+    return db.from('invoiceit_businesses').update(fields).eq('id', business().id).select('id,name,addr,phone,tagline,logo_url,title_style').single().then(function (r) {
       if (r.error) fail(r.error);
-      me.business = r.data; return r.data;
+      Object.assign(me.business, r.data); return me.business;
+    });
+  }
+  /* Shrinks the picture to at most 600px, uploads it under this business's folder and returns its public URL.
+     Every upload gets a new name, so invoices made with an older logo keep it. */
+  function uploadLogo(file) {
+    if (!file || !/^image\//.test(file.type)) return Promise.reject(new Error('Choose a picture file (PNG, JPG or WebP).'));
+    if (file.size > 15 * 1024 * 1024) return Promise.reject(new Error('That picture is too big. Use one under 15 MB.'));
+    return new Promise(function (resolve, reject) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var k = Math.min(1, 600 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (blob) { blob ? resolve(blob) : reject(new Error('Could not read that picture.')); }, 'image/webp', 0.92);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Could not read that picture. Try a PNG or JPG.')); };
+      img.src = url;
+    }).then(function (blob) {
+      // Browsers that can't make WebP give PNG instead.
+      var ext = blob.type === 'image/webp' ? 'webp' : 'png';
+      var path = business().id + '/logo-' + Date.now() + '.' + ext, bucket = db.storage.from('invoiceit-logos');
+      return bucket.upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false }).then(function (r) {
+        if (r.error) fail(r.error);
+        return bucket.getPublicUrl(path).data.publicUrl;
+      });
     });
   }
   function team() {
@@ -429,6 +455,57 @@
     return '<span class="badge' + cls + '">' + status + '</span>';
   }
 
+  /* ---------- Invoice branding ---------- */
+  var DEFAULT_TITLE = 'Cash Sales Invoice';
+  var TITLE_SUGGESTIONS = ['Cash Sales Invoice', 'Credit Sales Invoice', 'Proforma Invoice', 'Sales Receipt', 'Quotation', 'Invoice'];
+  /* Fonts the business name can use. q is the Google Fonts family spec. Keep in step with invoice.ts. */
+  var TITLE_FONTS = {
+    arimo: { label: 'Classic', css: "'Arimo',Arial,sans-serif", q: 'Arimo:ital,wght@0,400;0,700;1,400;1,700' },
+    montserrat: { label: 'Modern', css: "'Montserrat',Arial,sans-serif", q: 'Montserrat:ital,wght@0,400;0,700;1,400;1,700' },
+    oswald: { label: 'Tall', css: "'Oswald',Arial,sans-serif", q: 'Oswald:wght@400;700' },
+    anton: { label: 'Heavy', css: "'Anton',Impact,sans-serif", q: 'Anton' },
+    playfair: { label: 'Elegant', css: "'Playfair Display',Georgia,serif", q: 'Playfair+Display:ital,wght@0,400;0,700;1,400;1,700' },
+    merriweather: { label: 'Bookish', css: "'Merriweather',Georgia,serif", q: 'Merriweather:ital,wght@0,400;0,700;1,400;1,700' },
+    cinzel: { label: 'Engraved', css: "'Cinzel',Georgia,serif", q: 'Cinzel:wght@400;700' },
+    lobster: { label: 'Signwriter', css: "'Lobster',cursive", q: 'Lobster' },
+    pacifico: { label: 'Handwritten', css: "'Pacifico',cursive", q: 'Pacifico' }
+  };
+  var TITLE_SIZES = { s: 'Small', m: 'Medium', l: 'Large' };
+  /* Cleans a saved title style: unknown values fall back to the original look (Classic, medium, capitals). */
+  function titleStyle(ts) {
+    ts = ts && typeof ts === 'object' ? ts : {};
+    return {
+      font: Object.prototype.hasOwnProperty.call(TITLE_FONTS, ts.font) ? ts.font : 'arimo',
+      size: Object.prototype.hasOwnProperty.call(TITLE_SIZES, ts.size) ? ts.size : 'm',
+      bold: ts.bold === true, italic: ts.italic === true, caps: ts.caps !== false,
+      color: /^#[0-9a-fA-F]{6}$/.test(String(ts.color)) ? String(ts.color) : '#111111'
+    };
+  }
+  function fontHref(key) { return 'https://fonts.googleapis.com/css2?family=' + TITLE_FONTS[titleStyle({ font: key }).font].q + '&display=swap'; }
+  /* Adds the stylesheet for a title font to the page once. */
+  function loadFont(key) {
+    var href = fontHref(key);
+    if (document.querySelector('link[href="' + href + '"]')) return;
+    var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
+  }
+  function safeLogo(u) { u = String(u || ''); return /^https:\/\/[^\s"'<>]+$/.test(u) ? u : ''; }
+  /* The business details an invoice keeps a copy of. */
+  function storeFrom(b) {
+    b = b || {};
+    return { name: b.name || '', addr: b.addr || '', phone: b.phone || '', tagline: b.tagline || '', logo: b.logo_url || '', titleStyle: titleStyle(b.title_style) };
+  }
+  /* Top of the invoice: logo, business name, the line under it, address and phone. */
+  function paperHead(store) {
+    store = store || {};
+    var t = titleStyle(store.titleStyle), logo = safeLogo(store.logo);
+    var css = 'font-family:' + TITLE_FONTS[t.font].css + ';font-weight:' + (t.bold ? 700 : 400) + ';font-style:' + (t.italic ? 'italic' : 'normal') +
+      ';text-transform:' + (t.caps ? 'uppercase' : 'none') + ';color:' + t.color;
+    return '<div class="p-head">' + (logo ? '<img class="p-logo" src="' + esc(logo) + '" alt="">' : '') +
+      '<span class="p-name sz-' + t.size + '" style="' + esc(css) + '">' + esc(store.name) + '</span>' +
+      (String(store.tagline || '').trim() ? '<span class="p-tag">' + esc(store.tagline) + '</span>' : '') +
+      '<span class="p-addr">' + esc(store.addr) + '</span><span class="p-mob"><b>Mobile:</b> ' + esc(store.phone) + '</span></div>';
+  }
+
   /* The printed invoice, laid out like the store's real receipts. */
   function paper(inv) {
     var c = calc(inv), cur = inv.currency, m = function (n) { return money(n, cur); };
@@ -447,9 +524,8 @@
     if (num(inv.tax) > 0) sum += '<div class="p-sum"><b>VAT (' + esc(inv.tax) + '%):</b><span>' + m(c.tax) + '</span></div>';
     sum += '<div class="p-sum"><b>Total:</b><span>' + m(c.total) + '</span></div>';
     return '<article class="paper"><div class="in-pad">' +
-      '<div class="p-head"><span class="p-name">' + esc(inv.store && inv.store.name) + '</span><span class="p-addr">' + esc(inv.store.addr) +
-      '</span><span class="p-mob"><b>Mobile:</b> ' + esc(inv.store.phone) + '</span></div>' +
-      '<div class="p-title">Invoice</div>' +
+      paperHead(inv.store) +
+      '<div class="p-title">' + esc(String(inv.title || '').trim() || 'Invoice') + '</div>' +
       '<div class="p-meta"><div class="col"><span><b>Invoice No.</b> ' + esc(inv.no) + '</span><b>Customer</b><span style="text-transform:uppercase;overflow-wrap:anywhere">' +
       esc(inv.cust) + '</span><span><b>Mobile</b>: ' + esc(inv.phone) + '</span></div><span><b>Date</b> ' + esc(inv.date) + '</span></div>' +
       '<div style="font-size:12px;text-transform:uppercase"><b>Sales by</b> ' + esc(inv.salesBy) + '</div>' +
@@ -472,6 +548,9 @@
 
   window.Store = {
     esc: esc, num: num, qty: qty, methodSelect: methodSelect, plain: plain, money: money, today: today, nowStr: nowStr, SYMS: SYMS,
+    DEFAULT_TITLE: DEFAULT_TITLE, TITLE_SUGGESTIONS: TITLE_SUGGESTIONS, TITLE_FONTS: TITLE_FONTS, TITLE_SIZES: TITLE_SIZES,
+    titleStyle: titleStyle, fontHref: fontHref, loadFont: loadFont, storeFrom: storeFrom, storeInfo: function () { return storeFrom(business()); },
+    paperHead: paperHead, uploadLogo: uploadLogo,
     business: business, isOwner: isOwner, billing: billing, pay: pay, priceText: priceText, monthOptions: monthOptions, currency: currency, fmtDate: fmtDate, daysLeft: daysLeft, updateBusiness: updateBusiness, team: team, newJoinCode: newJoinCode, deleteJoinCode: deleteJoinCode, removeMember: removeMember,
     apiDashboard: apiDashboard, apiKeys: apiKeys, createApiKey: createApiKey, revokeApiKey: revokeApiKey, payApiPlan: payApiPlan,
     settings: settings, saveSettings: saveSettings,

@@ -36,6 +36,7 @@ export const invoiceSchema = z.object({
   payments: z.array(paymentSchema).max(50, "At most 50 payments.").default([]),
   notes: z.string().max(2000).optional(),
   sales_by: z.string().trim().max(100).optional(),
+  title: z.string().trim().min(1, "Title cannot be empty.").max(60).optional(),
 }).strict().superRefine((v, ctx) => {
   // Same maths as the web app, so "overpaid" means exactly what it means there.
   const c = calc({

@@ -85,6 +85,10 @@ label.f textarea{height:auto;padding:12px;line-height:1.5;resize:vertical}
 .paper .in-pad{padding:40px 32px 48px;display:flex;flex-direction:column;gap:22px}
 .p-head{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .p-name{font-family:'Arimo',Arial,sans-serif;font-size:32px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
+.p-name.sz-s{font-size:24px}
+.p-name.sz-l{font-size:42px}
+.p-logo{display:block;max-width:180px;max-height:80px;object-fit:contain;margin-bottom:4px}
+.p-tag{font-size:12px;font-style:italic;text-transform:uppercase;overflow-wrap:anywhere}
 .p-addr{font-size:10.5px;text-transform:uppercase;overflow-wrap:anywhere}
 .p-mob{font-size:12px}
 .p-title{text-align:center;font-family:'Arimo',Arial,sans-serif;font-size:24px;text-transform:uppercase}
@@ -142,6 +146,9 @@ label.f textarea{height:auto;padding:12px;line-height:1.5;resize:vertical}
   .view{padding:16px 16px 40px;gap:24px}
   .paper .in-pad{padding:24px 16px 28px}
   .p-name{font-size:24px}
+  .p-name.sz-s{font-size:19px}
+  .p-name.sz-l{font-size:30px}
+  .p-logo{max-width:140px;max-height:64px}
   .p-grid{grid-template-columns:minmax(0,1fr) 62px 70px 78px;font-size:11px}
   .topbar .right{width:100%}
   .topbar .right>*{flex:1}
@@ -240,6 +247,30 @@ label.f select:invalid,label.f select option[value=""]{color:#8A8F96}
 .biz-form{display:flex;flex-direction:column;gap:16px}
 .biz-form .btn{align-self:flex-start;min-height:52px}
 .biz-form input[readonly]{background:var(--field)}
+/* Business page: logo and how the business name looks */
+.biz-form .cap-l{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#333}
+.logo-field{display:flex;flex-direction:column;gap:6px}
+.logo-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.logo-box{width:160px;height:96px;display:flex;align-items:center;justify-content:center;border:2px dashed var(--ink);background:#fff;padding:8px}
+.logo-box img{max-width:100%;max-height:100%;object-fit:contain}
+.logo-box span{font-size:13px;color:var(--mute)}
+.logo-acts{flex:1 1 220px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.biz-form .logo-acts .btn{align-self:auto;min-height:48px}
+.logo-acts .hint{flex-basis:100%}
+.name-style{margin:0;padding:0;border:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.name-style legend{padding:0;margin-bottom:6px}
+.font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.font-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:72px;padding:10px 12px;border:2px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;text-align:left;min-width:0}
+.font-grid .fs{font-size:20px;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.font-grid small{font-family:'Chivo Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+.font-grid button[aria-checked=true]{background:var(--ink);color:#fff;box-shadow:inset 0 0 0 2px #fff}
+.font-grid button[aria-checked=true] small{color:#ddd}
+.style-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.colour{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 6px 0 14px;border:2px solid var(--ink);background:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.colour input{width:40px;height:32px;padding:0;border:0;background:none;cursor:pointer}
+.head-preview{display:flex;flex-direction:column;gap:6px}
+.head-preview .paper{min-height:0;max-width:none;box-shadow:0 0 0 2px var(--ink)}
+.head-preview .in-pad{padding:28px 24px}
 .box .line.member{grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
 .member .who{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere;font-size:15px}
 .member small{color:var(--mute);font-size:12px}

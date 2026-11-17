@@ -19,9 +19,12 @@ export type InvoiceData = {
   tax?: string | number;
   items: Item[];
   payments: Payment[];
-  store?: { name?: string; addr?: string; phone?: string };
+  title?: string;
+  store?: StoreInfo;
   [k: string]: unknown;
 };
+export type TitleStyle = { font: string; size: string; bold: boolean; italic: boolean; caps: boolean; color: string };
+export type StoreInfo = { name?: string; addr?: string; phone?: string; tagline?: string; logo?: string; titleStyle?: unknown };
 export type Calc = {
   sub: number; disc: number; del: number; tax: number; total: number;
   paid: number; balance: number; change: number; status: "PAID" | "UNPAID" | "PART-PAID";
@@ -72,10 +75,56 @@ export function settle(c: Calc, cur?: string): { kind: string; text: string } {
   return { kind: "ok", text: "Fully paid. Payments match the items total." };
 }
 
+/* ---------- Invoice branding (same as js/store.js) ---------- */
+export const DEFAULT_TITLE = "Cash Sales Invoice";
+/* Fonts the business name can use. q is the Google Fonts family spec. */
+export const TITLE_FONTS: Record<string, { label: string; css: string; q: string }> = {
+  arimo: { label: "Classic", css: "'Arimo',Arial,sans-serif", q: "Arimo:ital,wght@0,400;0,700;1,400;1,700" },
+  montserrat: { label: "Modern", css: "'Montserrat',Arial,sans-serif", q: "Montserrat:ital,wght@0,400;0,700;1,400;1,700" },
+  oswald: { label: "Tall", css: "'Oswald',Arial,sans-serif", q: "Oswald:wght@400;700" },
+  anton: { label: "Heavy", css: "'Anton',Impact,sans-serif", q: "Anton" },
+  playfair: { label: "Elegant", css: "'Playfair Display',Georgia,serif", q: "Playfair+Display:ital,wght@0,400;0,700;1,400;1,700" },
+  merriweather: { label: "Bookish", css: "'Merriweather',Georgia,serif", q: "Merriweather:ital,wght@0,400;0,700;1,400;1,700" },
+  cinzel: { label: "Engraved", css: "'Cinzel',Georgia,serif", q: "Cinzel:wght@400;700" },
+  lobster: { label: "Signwriter", css: "'Lobster',cursive", q: "Lobster" },
+  pacifico: { label: "Handwritten", css: "'Pacifico',cursive", q: "Pacifico" },
+};
+export const TITLE_SIZES: Record<string, string> = { s: "Small", m: "Medium", l: "Large" };
+const has = (o: object, k: unknown) => typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k);
+
+/* Cleans a saved title style: unknown values fall back to the original look (Classic, medium, capitals). */
+export function titleStyle(ts: unknown): TitleStyle {
+  const t = (ts && typeof ts === "object" ? ts : {}) as Record<string, unknown>;
+  return {
+    font: has(TITLE_FONTS, t.font) ? t.font as string : "arimo",
+    size: has(TITLE_SIZES, t.size) ? t.size as string : "m",
+    bold: t.bold === true, italic: t.italic === true, caps: t.caps !== false,
+    color: /^#[0-9a-fA-F]{6}$/.test(String(t.color)) ? String(t.color) : "#111111",
+  };
+}
+export function fontHref(key: unknown): string {
+  return "https://fonts.googleapis.com/css2?family=" + TITLE_FONTS[titleStyle({ font: key }).font].q + "&display=swap";
+}
+function safeLogo(u: unknown): string {
+  const s = String(u || "");
+  return /^https:\/\/[^\s"'<>]+$/.test(s) ? s : "";
+}
+
+/* Top of the invoice: logo, business name, the line under it, address and phone. */
+export function paperHead(store?: StoreInfo): string {
+  const s = store ?? {};
+  const t = titleStyle(s.titleStyle), logo = safeLogo(s.logo);
+  const css = "font-family:" + TITLE_FONTS[t.font].css + ";font-weight:" + (t.bold ? 700 : 400) + ";font-style:" + (t.italic ? "italic" : "normal") +
+    ";text-transform:" + (t.caps ? "uppercase" : "none") + ";color:" + t.color;
+  return '<div class="p-head">' + (logo ? '<img class="p-logo" src="' + esc(logo) + '" alt="">' : "") +
+    '<span class="p-name sz-' + t.size + '" style="' + esc(css) + '">' + esc(s.name) + "</span>" +
+    (String(s.tagline || "").trim() ? '<span class="p-tag">' + esc(s.tagline) + "</span>" : "") +
+    '<span class="p-addr">' + esc(s.addr) + '</span><span class="p-mob"><b>Mobile:</b> ' + esc(s.phone) + "</span></div>";
+}
+
 /* The printed invoice, laid out like the store's real receipts. Same markup as Store.paper(). */
 export function paper(inv: InvoiceData): string {
   const c = calc(inv), cur = inv.currency, m = (n: number) => money(n, cur);
-  const store = inv.store ?? {};
   const rows = inv.items.map((i) => {
     const line = qty(i) * num(i.price);
     return '<div class="p-grid p-tr"><div><div class="pn">' + esc(i.desc) + "</div>" +
@@ -91,9 +140,8 @@ export function paper(inv: InvoiceData): string {
   if (num(inv.tax) > 0) sum += '<div class="p-sum"><b>VAT (' + esc(inv.tax) + "%):</b><span>" + m(c.tax) + "</span></div>";
   sum += '<div class="p-sum"><b>Total:</b><span>' + m(c.total) + "</span></div>";
   return '<article class="paper"><div class="in-pad">' +
-    '<div class="p-head"><span class="p-name">' + esc(store.name) + '</span><span class="p-addr">' + esc(store.addr) +
-    '</span><span class="p-mob"><b>Mobile:</b> ' + esc(store.phone) + "</span></div>" +
-    '<div class="p-title">Invoice</div>' +
+    paperHead(inv.store) +
+    '<div class="p-title">' + esc(String(inv.title || "").trim() || "Invoice") + "</div>" +
     '<div class="p-meta"><div class="col"><span><b>Invoice No.</b> ' + esc(inv.no) + '</span><b>Customer</b><span style="text-transform:uppercase;overflow-wrap:anywhere">' +
     esc(inv.cust) + "</span><span><b>Mobile</b>: " + esc(inv.phone) + "</span></div><span><b>Date</b> " + esc(inv.date) + "</span></div>" +
     '<div style="font-size:12px;text-transform:uppercase"><b>Sales by</b> ' + esc(inv.salesBy) + "</div>" +
@@ -116,6 +164,10 @@ body{display:flex;justify-content:center;padding:24px 12px}
 .paper .in-pad{padding:40px 32px 48px;display:flex;flex-direction:column;gap:22px}
 .p-head{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .p-name{font-family:'Arimo',Arial,sans-serif;font-size:32px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
+.p-name.sz-s{font-size:24px}
+.p-name.sz-l{font-size:42px}
+.p-logo{display:block;max-width:180px;max-height:80px;object-fit:contain;margin-bottom:4px}
+.p-tag{font-size:12px;font-style:italic;text-transform:uppercase;overflow-wrap:anywhere}
 .p-addr{font-size:10.5px;text-transform:uppercase;overflow-wrap:anywhere}
 .p-mob{font-size:12px}
 .p-title{text-align:center;font-family:'Arimo',Arial,sans-serif;font-size:24px;text-transform:uppercase}
@@ -135,16 +187,18 @@ body{display:flex;justify-content:center;padding:24px 12px}
 .p-pay.two{grid-template-columns:minmax(0,1.1fr) minmax(0,2.2fr)}
 .p-sum{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dotted #9A9A9A}
 .p-notes{font-size:10.5px;line-height:1.6;color:#333;white-space:pre-line}
-@media (max-width:640px){.paper .in-pad{padding:24px 16px 28px}.p-name{font-size:24px}.p-grid{grid-template-columns:minmax(0,1fr) 62px 70px 78px;font-size:11px}}
+@media (max-width:640px){.paper .in-pad{padding:24px 16px 28px}.p-name{font-size:24px}.p-name.sz-s{font-size:19px}.p-name.sz-l{font-size:30px}.p-logo{max-width:140px;max-height:64px}.p-grid{grid-template-columns:minmax(0,1fr) 62px 70px 78px;font-size:11px}}
 @media print{html,body{background:#fff}body{display:block;padding:0}.paper{box-shadow:none;max-width:none;min-height:0}}
 `;
 
 /* A complete HTML page for one invoice: fonts, print CSS and the paper() markup. */
 export function invoicePage(inv: InvoiceData): string {
-  const title = "Invoice " + esc(inv.no) + (inv.store?.name ? " · " + esc(inv.store.name) : "");
+  const title = esc(String(inv.title || "").trim() || "Invoice") + " " + esc(inv.no) + (inv.store?.name ? " · " + esc(inv.store.name) : "");
+  const font = titleStyle(inv.store?.titleStyle).font;
   return "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">" +
     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>" + title + "</title>" +
     "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">" +
-    "<link href=\"https://fonts.googleapis.com/css2?family=Arimo:wght@400;500&family=Open+Sans:wght@400;600;700&display=swap\" rel=\"stylesheet\">" +
+    "<link href=\"https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Open+Sans:wght@400;600;700&display=swap\" rel=\"stylesheet\">" +
+    (font === "arimo" ? "" : "<link href=\"" + esc(fontHref(font)) + "\" rel=\"stylesheet\">") +
     "<style>" + PRINT_CSS + "</style></head><body>" + paper(inv) + "</body></html>";
 }

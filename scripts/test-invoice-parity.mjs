@@ -19,6 +19,14 @@ const cases = [
   { currency: "NGN", items: [{ desc: "z", qty: "1", price: "100" }], payments: [{ method: "POS", amount: "150" }], discount: "500" },
   { currency: "USD", items: [{ desc: "big", qty: "1.5", price: "1234567.891" }], payments: [{ method: "Cash", amount: "1000000" }], tax: "12.345" },
 ];
+// Branding: logo, line under the name, title style and invoice title (including bad values that must be cleaned).
+const brand = [
+  { title: "Cash Sales Invoice", store: { name: "JB Enterprise", addr: "Lagos", phone: "070", tagline: "Dealers in all kinds of phones, handsets & general merchants",
+    logo: "https://x.supabase.co/storage/v1/object/public/invoiceit-logos/b/logo-1.webp", titleStyle: { font: "playfair", size: "l", bold: true, italic: true, caps: false, color: "#aa0033" } } },
+  { title: "  ", store: { name: "Shop", titleStyle: { font: "nope", size: "xl", bold: "yes", color: "red;background:url(x)" }, logo: "javascript:alert(1)" } },
+  { title: "<script>", store: { name: "S", logo: 'https://e.com/a"onerror="x', titleStyle: null, tagline: "<b>hi</b>" } },
+];
+for (const [k, b] of brand.entries()) cases.push({ currency: "NGN", items: [{ desc: "Phone", qty: "1", price: "1000" }], payments: [], ...b, _brand: k });
 // Plus random ones
 for (let k = 0; k < 300; k++) {
   const r = (max, dp = 2) => (Math.random() * max).toFixed(dp);

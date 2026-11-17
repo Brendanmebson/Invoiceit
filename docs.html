@@ -104,7 +104,8 @@
           <li><b>Items:</b> a description, an optional serial number, a quantity and a unit price for each line.</li>
           <li><b>Discount, delivery and VAT</b>, all optional.</li>
           <li><b>Payments</b> received so far, and notes.</li>
-          <li>A copy of the <b>business name, address and phone</b> as they were when the invoice was written. Changing business details later doesn't change invoices that already exist.</li>
+          <li>A <b>title</b> saying what the invoice is for, such as Cash Sales Invoice (the default), Proforma Invoice or Quotation.</li>
+          <li>A copy of the <b>business name, logo, the line under the name, the name's font and style, address and phone</b> as they were when the invoice was written. Changing business details later doesn't change invoices that already exist.</li>
         </ul>
         <h3>Changing an invoice</h3>
         <p>After an invoice is saved, you can add payments to it until it's fully paid. To bill a customer again for the same items, use <b>Duplicate invoice</b>: it copies the customer and items into a new invoice with a new number and no payments.</p>
@@ -183,12 +184,14 @@ Balance   = Total − Paid   (never below 0)</code></pre>
 <pre><code>{
   "id": "4f1c…",                    // set by the database
   "no": "00042",                    // set by the database, never changes
+  "title": "Cash Sales Invoice",
   "date": "08-11-2026 02:15 PM",
   "cust": "Ada Okafor",
   "phone": "0803 000 0000",
   "salesBy": "Tunde",
   "currency": "NGN",
-  "store": { "name": "…", "addr": "…", "phone": "…" },
+  "store": { "name": "…", "addr": "…", "phone": "…", "tagline": "…", "logo": "https://…",
+             "titleStyle": { "font": "arimo", "size": "m", "bold": false, "italic": false, "caps": true, "color": "#111111" } },
   "items": [
     { "desc": "Phone case", "serial": "", "qty": "2", "price": "3500" }
   ],

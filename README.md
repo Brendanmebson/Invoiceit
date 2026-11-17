@@ -35,4 +35,5 @@ Open `index.html` (the landing page) and click Sign up or Sign in.
 - `invoices.html`: invoice list (sign in / sign up appear here when signed out; `#signup` opens sign up)
 - `new.html`, `invoice.html?id=...`: write, view, print, share, record payments
 - `developers.html`, `docs.html`, `integrations.html`: public developer pages (Overview, Documentation, Integrations). Keep them true to the app; update them when behaviour changes
-- `business.html`: business details and team (owners can edit and add people)
+- `business.html`: business details and team (owners can edit and add people). Owners also set the invoice branding here: logo (stored in the public `invoiceit-logos` bucket under the business id; each upload gets a new file name so older invoices keep their logo), a line under the business name, and the name's font, size, bold/italic/capitals and colour
+- Each invoice has a title (default "Cash Sales Invoice"). Fonts for the business name are listed in `TITLE_FONTS` in both `js/store.js` and `supabase/functions/_shared/invoice.ts`; keep them the same
