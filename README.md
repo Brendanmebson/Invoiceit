@@ -13,7 +13,7 @@ Open `index.html` (the landing page) and click Sign up or Sign in.
 - Each business sees only its own invoices, team and codes. This is enforced in the database (row level security), not just the app.
 - Data lives in Supabase (project "Projects"), tables `invoiceit_businesses`, `invoiceit_members`, `invoiceit_join_codes`, `invoiceit_invoices`. The old `jb_*` tables are no longer used by the app and can be dropped once you're happy.
 - Invoice numbers are per business and assigned by the database on save, so two devices never get the same number. Numbers of deleted invoices are never reused.
-- Owners can delete invoices: one at a time (Delete invoice on the invoice page) or old ones in bulk (Invoices → Delete old invoices, by invoice date, fully paid only by default). Staff can't. A copy of every deleted invoice stays in `invoiceit_invoice_audit`.
+- Owners can delete invoices: one at a time, with Delete invoice on the invoice's page. Staff can't. A copy of every deleted invoice stays in `invoiceit_invoice_audit`.
 - `js/config.js` holds the project URL and publishable key, which are safe to be public. Never put the DATABASE_URL or a secret key in this folder.
 - "Download PDF" opens the print dialog; choose "Save as PDF". Only the invoice itself is printed.
 - Deploy: this folder is a static site (Vercel / Netlify).

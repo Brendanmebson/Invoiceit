@@ -404,11 +404,6 @@
       return r.data.length;
     });
   }
-  /* The invoice's own date ("dd-mm-yyyy hh:mm AM") as a Date, or null if it can't be read. */
-  function invDate(inv) {
-    var m = /^(\d{2})-(\d{2})-(\d{4})/.exec(String(inv.date || '').trim());
-    return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
-  }
   /* Best guess for the preview; the real number is assigned on save. */
   function nextNo() {
     return all().then(function (l) {
@@ -569,7 +564,7 @@
     business: business, isOwner: isOwner, billing: billing, pay: pay, priceText: priceText, monthOptions: monthOptions, currency: currency, fmtDate: fmtDate, daysLeft: daysLeft, updateBusiness: updateBusiness, team: team, newJoinCode: newJoinCode, deleteJoinCode: deleteJoinCode, removeMember: removeMember,
     apiDashboard: apiDashboard, apiKeys: apiKeys, createApiKey: createApiKey, revokeApiKey: revokeApiKey, payApiPlan: payApiPlan,
     settings: settings, saveSettings: saveSettings,
-    ready: ready, all: all, get: get, add: add, update: update, nextNo: nextNo, remove: remove, invDate: invDate,
+    ready: ready, all: all, get: get, add: add, update: update, nextNo: nextNo, remove: remove,
     localInvoices: localInvoices, uploadLocal: uploadLocal, clearLocal: clearLocal,
     calc: calc, settle: settle, badge: badge, paper: paper
   };

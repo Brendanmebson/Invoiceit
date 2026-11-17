@@ -35,21 +35,6 @@
 
   <div class="stats" id="stats"></div>
 
-  <div class="old-del" id="oldDel" hidden>
-    <button class="btn ghost" type="button" id="oldToggle" aria-expanded="false" aria-controls="oldPanel">Delete old invoices</button>
-    <div class="old-panel" id="oldPanel" hidden>
-      <label class="f">Delete invoices dated before
-        <select id="oldAge">
-          <option value="1">1 month ago</option><option value="3">3 months ago</option><option value="6" selected>6 months ago</option>
-          <option value="12">1 year ago</option><option value="24">2 years ago</option>
-        </select>
-      </label>
-      <label class="check"><input type="checkbox" id="oldPaidOnly" checked> Only fully paid invoices (keep ones still owed money)</label>
-      <p class="hint" id="oldCount" aria-live="polite"></p>
-      <button class="btn danger" type="button" id="oldGo">Delete</button>
-    </div>
-  </div>
-
   <div class="seg" id="filters" style="align-self:flex-start">
     <button data-f="ALL" aria-pressed="true">All</button>
     <button data-f="PAID" aria-pressed="false">PAID</button>
@@ -133,37 +118,9 @@
   function load() {
     return S.all().then(function (list) {
       data = list.map(function (i) { return { inv: i, c: S.calc(i) }; });
-      renderStats(); renderRows(); renderUpload(); renderOld();
+      renderStats(); renderRows(); renderUpload();
     });
   }
-  /* Owners: delete old invoices in one go. */
-  function oldMatches() {
-    var cut = new Date(); cut.setHours(0, 0, 0, 0); cut.setMonth(cut.getMonth() - +document.getElementById('oldAge').value);
-    var paidOnly = document.getElementById('oldPaidOnly').checked;
-    return data.filter(function (d) { var dt = S.invDate(d.inv); return dt && dt < cut && (!paidOnly || d.c.status === 'PAID'); });
-  }
-  function renderOld() {
-    var box = document.getElementById('oldDel'); box.hidden = !S.isOwner(); if (box.hidden) return;
-    var list = oldMatches(), n = list.length, owed = list.filter(function (d) { return d.c.balance > 0; }).length;
-    document.getElementById('oldCount').textContent = n ? n + ' invoice' + (n === 1 ? '' : 's') + ' will be deleted' + (owed ? ', ' + owed + ' of them still owed money' : '') + '.' : 'No invoices match.';
-    var go = document.getElementById('oldGo'); go.disabled = !n; go.textContent = n ? 'Delete ' + n + ' invoice' + (n === 1 ? '' : 's') : 'Delete';
-  }
-  document.getElementById('oldToggle').onclick = function () {
-    var p = document.getElementById('oldPanel'); p.hidden = !p.hidden; this.setAttribute('aria-expanded', String(!p.hidden)); renderOld();
-  };
-  document.getElementById('oldAge').onchange = document.getElementById('oldPaidOnly').onchange = renderOld;
-  document.getElementById('oldGo').onclick = function () {
-    var list = oldMatches(), n = list.length; if (!n) return;
-    if (!confirm('Delete ' + n + ' invoice' + (n === 1 ? '' : 's') + '? They will disappear for everyone. This cannot be undone from the app.')) return;
-    var btn = this; btn.disabled = true; btn.textContent = 'Deleting…';
-    var ids = list.map(function (d) { return d.inv.id; }), chunks = [];
-    for (var i = 0; i < ids.length; i += 100) chunks.push(ids.slice(i, i + 100));
-    var done = 0;
-    chunks.reduce(function (p, ch) { return p.then(function () { return S.remove(ch).then(function (k) { done += k; }); }); }, Promise.resolve())
-      .then(function () { flash(done + ' invoice' + (done === 1 ? '' : 's') + ' deleted.'); })
-      .catch(function (err) { flash((done ? done + ' deleted, then it stopped: ' : 'Not deleted: ') + err.message); })
-      .then(load);
-  };
   function flash(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(function () { t.style.display = 'none'; }, 3000); }
 
   S.ready().then(function () { return load(); }).then(function () { if (location.hash === '#deleted') { flash('Invoice deleted.'); history.replaceState(null, '', location.pathname); } }).catch(function (err) { document.getElementById('empty').textContent = 'Could not load invoices. ' + err.message; });

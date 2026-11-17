@@ -1,4 +1,4 @@
--- Owners can delete invoices (one at a time, or old ones in bulk from the Invoices page). Staff can't.
+-- Owners can delete invoices (one at a time, from the invoice page). Staff can't.
 -- The audit trigger (20261109030000_invoiceit_hardening.sql) keeps a full copy of every deleted invoice.
 
 grant delete on public.invoiceit_invoices to authenticated;

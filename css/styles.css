@@ -23,13 +23,6 @@ input:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px soli
 .btn.ghost{background:transparent;border-style:dashed}
 .btn.danger{border-color:var(--accent-ink);color:var(--accent-ink)}
 .btn.danger:disabled{opacity:.5;cursor:default}
-.old-del{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
-.old-panel{width:100%;max-width:520px;display:flex;flex-direction:column;gap:12px;padding:16px;border:2px solid var(--ink);border-top:6px solid var(--accent);background:#fff}
-.old-panel select{height:44px;border:2px solid var(--ink);background:#fff;font-size:15px;padding:0 10px}
-.old-panel .hint{margin:0;font-size:14px;color:var(--mute)}
-.old-panel .btn{align-self:flex-start}
-.check{display:flex;gap:10px;align-items:center;font-size:14px;cursor:pointer}
-.check input{width:20px;height:20px}
 .top-btn{display:flex;align-items:center;justify-content:center;padding:0 24px;border:0;border-left:1px solid #3A3D42;background:var(--ink);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
 .top-btn.primary{background:var(--accent);border-left:0;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
 
